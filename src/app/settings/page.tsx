@@ -24,7 +24,7 @@ export default function SettingsPage() {
         // For now, we'll just show a toast notification
         toast({
             title: "Settings Saved",
-            description: "Your new e-commerce settings have been saved.",
+            description: "Your new settings have been saved.",
         });
     }
 
@@ -35,9 +35,10 @@ export default function SettingsPage() {
       </div>
       <div className="mx-auto grid w-full max-w-6xl items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]">
         <Tabs defaultValue="ecommerce" className="w-full md:col-span-2">
-          <TabsList className="grid w-full grid-cols-2 md:inline-flex">
+          <TabsList className="grid w-full grid-cols-3 md:inline-flex">
             <TabsTrigger value="ecommerce">E-commerce</TabsTrigger>
             <TabsTrigger value="whitelabel">White Label</TabsTrigger>
+            <TabsTrigger value="integrations">Integrations</TabsTrigger>
           </TabsList>
           <TabsContent value="ecommerce">
             <Card>
@@ -99,6 +100,31 @@ export default function SettingsPage() {
                   <div className="space-y-2">
                     <Label htmlFor="logo">Logo</Label>
                     <Input id="logo" type="file" />
+                  </div>
+                </form>
+              </CardContent>
+              <CardFooter className="border-t px-6 py-4">
+                <Button>Save</Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+          <TabsContent value="integrations">
+            <Card>
+              <CardHeader>
+                <CardTitle>Google Sheets</CardTitle>
+                <CardDescription>
+                  Manage settings for Google Sheets integration.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="spreadsheet-url">Spreadsheet URL</Label>
+                    <Input id="spreadsheet-url" placeholder="Enter your Google Sheet URL" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="credentials">Credentials</Label>
+                    <Input id="credentials" type="text" placeholder="Enter your credentials" />
                   </div>
                 </form>
               </CardContent>

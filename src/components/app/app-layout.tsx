@@ -14,6 +14,7 @@ import {
   Home,
   Settings,
   Package,
+  Users,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
@@ -52,6 +53,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <Link href="/products">
                   <Package />
                   <span>Products</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/users'}
+                tooltip={{ children: 'Users' }}
+              >
+                <Link href="/users">
+                  <Users />
+                  <span>Users</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
