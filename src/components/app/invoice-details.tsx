@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useInvoice } from '@/hooks/use-invoice';
@@ -29,7 +30,9 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
     removeItem, 
     updateQuantity,
     updateItemPrice,
-    toggleItemDiscount,
+    updateItemDiscount,
+    toggleDiscountInput,
+    isDiscountInputVisible,
     clearInvoice 
   } = useInvoice();
   const { toast } = useToast();
@@ -94,18 +97,15 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
         });
         if (onShare) onShare();
       } catch (error) {
-        // If sharing fails, especially with a permission error, fall back to clipboard
         if (error instanceof DOMException && error.name === 'NotAllowedError') {
           console.warn('Web Share API permission denied, falling back to clipboard.');
           await copyToClipboard(invoiceText);
         } else {
           console.error('Error sharing:', error);
-          // For other errors, you might still want to try copying as a fallback.
           await copyToClipboard(invoiceText);
         }
       }
     } else {
-      // Fallback for browsers that don't support the Web Share API at all
       await copyToClipboard(invoiceText);
     }
   };
@@ -178,7 +178,7 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
         <CardContent className="p-4 h-full overflow-y-auto">
           <div className="space-y-4">
             {items.map((item) => (
-              <div key={item.id} className="flex flex-col gap-2 border-b pb-3">
+              <div key={item.id} className="flex flex-col gap-3 border-b pb-3">
                 <div className="flex items-center">
                   <p className="font-semibold flex-grow">{item.name}</p>
                    <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)} aria-label={`Remove ${item.name}`}>
@@ -199,29 +199,38 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity + 1)}> <Plus className="h-3 w-3" /> </Button>
                       </div>
                    </div>
-                   <div className="flex gap-2">
-                        <div className="space-y-1 flex-grow">
-                          <label className="text-xs text-muted-foreground">Price</label>
-                          <Input 
-                            type="number"
-                            value={item.price}
-                            onChange={(e) => updateItemPrice(item.id, parseFloat(e.target.value) || 0)}
-                            className="h-8"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                             <label className="text-xs text-muted-foreground">Discount</label>
-                             <Button
-                                variant={item.discount > 0 ? "secondary" : "outline"}
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => toggleItemDiscount(item.id)}
+                   <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                           <label className="text-xs text-muted-foreground">Price</label>
+                           <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => toggleDiscountInput(item.id)}
                             >
-                                <Percent className="h-4 w-4" />
+                              <Percent className="h-4 w-4" />
                             </Button>
                         </div>
+                        <Input 
+                          type="number"
+                          value={item.price}
+                          onChange={(e) => updateItemPrice(item.id, parseFloat(e.target.value) || 0)}
+                          className="h-8"
+                        />
                    </div>
                 </div>
+                 {isDiscountInputVisible(item.id) && (
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Discount Amount</label>
+                      <Input 
+                        type="number"
+                        value={item.discount}
+                        onChange={(e) => updateItemDiscount(item.id, parseFloat(e.target.value) || 0)}
+                        placeholder="e.g. 5.00"
+                        className="h-8"
+                      />
+                    </div>
+                  )}
               </div>
             ))}
           </div>

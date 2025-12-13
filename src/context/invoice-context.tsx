@@ -12,7 +12,8 @@ interface InvoiceContextType {
   updateQuantity: (productId: string, newQuantity: number) => void;
   updateItemPrice: (productId: string, newPrice: number) => void;
   updateItemDiscount: (productId: string, newDiscount: number) => void;
-  toggleItemDiscount: (productId: string) => void;
+  toggleDiscountInput: (productId: string) => void;
+  isDiscountInputVisible: (productId: string) => boolean;
   clearInvoice: () => void;
   subtotal: number;
   tax: number;
@@ -26,6 +27,7 @@ export const InvoiceContext = createContext<InvoiceContextType | undefined>(unde
 
 export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<InvoiceItem[]>([]);
+  const [visibleDiscountInputs, setVisibleDiscountInputs] = useState<Set<string>>(new Set());
 
   const addItem = useCallback((product: Product, quantity = 1) => {
     setItems((prevItems) => {
@@ -41,6 +43,11 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const removeItem = useCallback((productId: string) => {
     setItems((prevItems) => prevItems.filter((item) => item.id !== productId));
+    setVisibleDiscountInputs(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(productId);
+        return newSet;
+    })
   }, []);
 
   const updateQuantity = useCallback((productId: string, newQuantity: number) => {
@@ -71,20 +78,27 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
   }, []);
 
-  const toggleItemDiscount = useCallback((productId: string) => {
-    setItems((prevItems) =>
-      prevItems.map((item) => {
-        if (item.id === productId) {
-          const newDiscount = item.discount > 0 ? 0 : item.price * 0.10; // 10% discount
-          return { ...item, discount: newDiscount };
-        }
-        return item;
-      })
-    );
-  }, []);
+  const toggleDiscountInput = useCallback((productId: string) => {
+    setVisibleDiscountInputs(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(productId)) {
+        newSet.delete(productId);
+         updateItemDiscount(productId, 0);
+      } else {
+        newSet.add(productId);
+      }
+      return newSet;
+    });
+  }, [updateItemDiscount]);
+
+  const isDiscountInputVisible = useCallback((productId: string) => {
+    return visibleDiscountInputs.has(productId);
+  }, [visibleDiscountInputs]);
+
 
   const clearInvoice = useCallback(() => {
     setItems([]);
+    setVisibleDiscountInputs(new Set());
   }, []);
 
   const subtotal = useMemo(() => {
@@ -104,7 +118,8 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const serviceCharge = SERVICE_CHARGE;
 
   const total = useMemo(() => {
-    return subtotal + tax + packagingCharge + serviceCharge - totalDiscount;
+    const calculatedTotal = subtotal + tax + packagingCharge + serviceCharge - totalDiscount;
+    return calculatedTotal > 0 ? calculatedTotal : 0;
   }, [subtotal, tax, packagingCharge, serviceCharge, totalDiscount]);
 
   const value = {
@@ -114,7 +129,8 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateQuantity,
     updateItemPrice,
     updateItemDiscount,
-    toggleItemDiscount,
+    toggleDiscountInput,
+    isDiscountInputVisible,
     clearInvoice,
     subtotal,
     tax,
