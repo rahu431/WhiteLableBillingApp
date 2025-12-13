@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth, useUser } from "@/firebase";
-import { initiateEmailSignIn, initiateGoogleSignIn } from "@/firebase/non-blocking-login";
+import { initiateEmailSignIn, initiateGoogleSignIn, handleGoogleRedirectResult } from "@/firebase/non-blocking-login";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
@@ -17,6 +17,13 @@ export default function LoginPage() {
     const auth = useAuth();
     const { user, isUserLoading } = useUser();
     const router = useRouter();
+
+    // Handle redirect result from Google Sign-In
+    useEffect(() => {
+        if (auth) {
+            handleGoogleRedirectResult(auth);
+        }
+    }, [auth]);
 
     useEffect(() => {
         if (!isUserLoading && user) {

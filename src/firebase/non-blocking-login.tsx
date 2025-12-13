@@ -5,7 +5,8 @@ import {
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
 } from 'firebase/auth';
 
 /** Initiate anonymous sign-in (non-blocking). */
@@ -32,7 +33,21 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
 /** Initiate Google sign-in with a popup (non-blocking). */
 export function initiateGoogleSignIn(authInstance: Auth): void {
   const provider = new GoogleAuthProvider();
-  // CRITICAL: Call signInWithPopup directly. Do NOT use 'await signInWithPopup(...)'.
-  signInWithPopup(authInstance, provider);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
+  // CRITICAL: Call signInWithRedirect directly. Do NOT use 'await signInWithRedirect(...)'.
+  signInWithRedirect(authInstance, provider);
+  // The user's browser will be redirected to Google's sign-in page.
+  // The result is handled when the page reloads.
+}
+
+/**
+ * Handles the result from a Google Sign-In redirect.
+ * This should be called on the login page when the component mounts.
+ */
+export function handleGoogleRedirectResult(authInstance: Auth) {
+  // This function returns a promise, but we won't block on it.
+  // The onAuthStateChanged listener will handle the user state change.
+  getRedirectResult(authInstance).catch((error) => {
+    // Handle errors here if necessary, e.g., for logging.
+    console.error("Google sign-in redirect error:", error);
+  });
 }
