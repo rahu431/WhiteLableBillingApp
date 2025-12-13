@@ -276,7 +276,3 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
     </div>
   );
 }
-
-    
-
-    
