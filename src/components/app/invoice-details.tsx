@@ -9,8 +9,11 @@ import { Separator } from '@/components/ui/separator';
 import { Trash2, ShoppingBag, Share2, Minus, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '../ui/input';
-import { useAuth, useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+
 
 interface InvoiceDetailsProps {
   onShare?: () => void;
@@ -56,6 +59,24 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
     return `*Your Invoice*:\n\n${itemsText}\n${summaryText}`;
   }
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Invoice Copied",
+        description: "The invoice details have been copied to your clipboard.",
+      });
+      if (onShare) onShare();
+    } catch (err) {
+      console.error('Error copying to clipboard:', err);
+      toast({
+        title: "Copying Failed",
+        description: "Could not copy the invoice to your clipboard.",
+        variant: "destructive",
+      });
+    }
+  };
+
 
   const handleShare = async () => {
     if (items.length === 0) {
@@ -76,28 +97,19 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
         });
         if (onShare) onShare();
       } catch (error) {
-        console.error('Error sharing:', error);
-        toast({
-          title: "Sharing Failed",
-          description: "Could not share the invoice.",
-          variant: "destructive",
-        });
+        // If sharing fails, especially with a permission error, fall back to clipboard
+        if (error instanceof DOMException && error.name === 'NotAllowedError') {
+          console.warn('Web Share API permission denied, falling back to clipboard.');
+          await copyToClipboard(invoiceText);
+        } else {
+          console.error('Error sharing:', error);
+          // For other errors, you might still want to try copying as a fallback.
+          await copyToClipboard(invoiceText);
+        }
       }
     } else {
-      // Fallback for browsers that don't support the Web Share API
-      try {
-        await navigator.clipboard.writeText(invoiceText);
-        toast({
-          title: "Invoice Copied",
-          description: "The invoice details have been copied to your clipboard.",
-        });
-        if (onShare) onShare();
-      } catch (error) {
-         console.error('Error copying to clipboard:', error);
-         const message = encodeURIComponent(invoiceText);
-         window.open(`https://wa.me/?text=${message}`, '_blank');
-         if (onShare) onShare();
-      }
+      // Fallback for browsers that don't support the Web Share API at all
+      await copyToClipboard(invoiceText);
     }
   };
   
@@ -119,40 +131,40 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
       return;
     }
 
-    try {
-      const invoiceData = {
-        userId: user.uid,
-        items: items.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            discount: item.discount
-        })),
-        subtotal,
-        tax,
-        packagingCharge,
-        serviceCharge,
-        totalDiscount,
-        total,
-        createdAt: serverTimestamp(),
-      };
-      
-      const invoicesCollection = collection(firestore, 'invoices');
-      await addDoc(invoicesCollection, invoiceData);
-
-      toast({ title: "Success!", description: "Invoice generated and saved." });
-      clearInvoice();
-      if (onInvoiceGenerated) onInvoiceGenerated();
-
-    } catch(error) {
-      console.error("Error generating invoice:", error);
-      toast({
-        title: "Invoice Generation Failed",
-        description: "Could not save the invoice. Please try again.",
-        variant: "destructive",
+    const invoiceData = {
+      userId: user.uid,
+      items: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          discount: item.discount
+      })),
+      subtotal,
+      tax,
+      packagingCharge,
+      serviceCharge,
+      totalDiscount,
+      total,
+      createdAt: serverTimestamp(),
+    };
+    
+    const invoicesCollection = collection(firestore, 'invoices');
+    addDoc(invoicesCollection, invoiceData)
+      .then(() => {
+        toast({ title: "Success!", description: "Invoice generated and saved." });
+        clearInvoice();
+        if (onInvoiceGenerated) onInvoiceGenerated();
+      })
+      .catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: invoicesCollection.path,
+          operation: 'create',
+          requestResourceData: invoiceData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        // We don't show a toast here because the global listener will handle it.
       });
-    }
   }
 
 
@@ -269,5 +281,7 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
     </div>
   );
 }
+
+    
 
     
