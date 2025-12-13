@@ -10,17 +10,51 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import {
-  Home,
-  Settings,
-  Package,
-  Users,
-} from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { Home, Settings, Package, Users } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useUser } from '@/firebase';
+import { useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, isUserLoading } = useUser();
 
+  useEffect(() => {
+    // If auth is not loading and there's no user, redirect to login.
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
+
+  // While checking auth, show a loading state.
+  if (isUserLoading || !user) {
+    return (
+      <div className="flex h-screen w-full">
+        <div className="hidden md:block w-[16rem] h-screen p-4">
+            <Skeleton className="h-8 w-1/2 mb-8" />
+            <div className='space-y-2'>
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+            </div>
+        </div>
+        <div className="flex-1 flex flex-col">
+            <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
+                <Skeleton className="h-8 w-8 rounded-full md:hidden" />
+                <Skeleton className="h-8 w-32 ml-auto" />
+            </header>
+            <main className="flex-1 p-4 md:p-6">
+                 <Skeleton className="h-full w-full" />
+            </main>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is authenticated, render the app layout.
   return (
     <div className="flex h-screen w-full">
       <Sidebar>
