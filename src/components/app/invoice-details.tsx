@@ -7,15 +7,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Trash2, ShoppingBag, Share2, Minus, Plus } from 'lucide-react';
-import QuantityControl from './quantity-control';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '../ui/input';
+import { useAuth, useFirestore, useUser } from '@/firebase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 interface InvoiceDetailsProps {
   onShare?: () => void;
+  onInvoiceGenerated?: () => void;
 }
 
-export default function InvoiceDetails({ onShare }: InvoiceDetailsProps) {
+export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceDetailsProps) {
   const { 
     items, 
     subtotal, 
@@ -31,17 +33,10 @@ export default function InvoiceDetails({ onShare }: InvoiceDetailsProps) {
     clearInvoice 
   } = useInvoice();
   const { toast } = useToast();
+  const firestore = useFirestore();
+  const { user } = useUser();
 
-  const handleShare = () => {
-    if (items.length === 0) {
-      toast({
-        title: "Cannot Share Empty Invoice",
-        description: "Please add items to the invoice before sharing.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const getInvoiceAsText = () => {
     const itemsText = items.map(item => {
       let itemText = `- ${item.name} (x${item.quantity}): ${formatCurrency(item.price * item.quantity)}`;
       if (item.discount > 0) {
@@ -57,11 +52,109 @@ export default function InvoiceDetails({ onShare }: InvoiceDetailsProps) {
     if (packagingCharge > 0) summaryText += `\nPackaging: ${formatCurrency(packagingCharge)}`;
     if (serviceCharge > 0) summaryText += `\nService Charge: ${formatCurrency(serviceCharge)}`;
     summaryText += `\n--------------------\n*Total: ${formatCurrency(total)}*`;
-    
-    const message = encodeURIComponent(`*Your Invoice*:\n\n${itemsText}\n${summaryText}`);
-    window.open(`https://wa.me/?text=${message}`, '_blank');
-    if (onShare) onShare();
+
+    return `*Your Invoice*:\n\n${itemsText}\n${summaryText}`;
+  }
+
+
+  const handleShare = async () => {
+    if (items.length === 0) {
+      toast({
+        title: "Cannot Share Empty Invoice",
+        description: "Please add items to the invoice before sharing.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const invoiceText = getInvoiceAsText();
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Your Invoice',
+          text: invoiceText,
+        });
+        if (onShare) onShare();
+      } catch (error) {
+        console.error('Error sharing:', error);
+        toast({
+          title: "Sharing Failed",
+          description: "Could not share the invoice.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      // Fallback for browsers that don't support the Web Share API
+      try {
+        await navigator.clipboard.writeText(invoiceText);
+        toast({
+          title: "Invoice Copied",
+          description: "The invoice details have been copied to your clipboard.",
+        });
+        if (onShare) onShare();
+      } catch (error) {
+         console.error('Error copying to clipboard:', error);
+         const message = encodeURIComponent(invoiceText);
+         window.open(`https://wa.me/?text=${message}`, '_blank');
+         if (onShare) onShare();
+      }
+    }
   };
+  
+  const handleGenerateInvoice = async () => {
+    if (!firestore || !user) {
+       toast({
+        title: "Error",
+        description: "You must be logged in to generate an invoice.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (items.length === 0) {
+      toast({
+        title: "Cannot Generate Empty Invoice",
+        description: "Please add items to the invoice first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const invoiceData = {
+        userId: user.uid,
+        items: items.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            discount: item.discount
+        })),
+        subtotal,
+        tax,
+        packagingCharge,
+        serviceCharge,
+        totalDiscount,
+        total,
+        createdAt: serverTimestamp(),
+      };
+      
+      const invoicesCollection = collection(firestore, 'invoices');
+      await addDoc(invoicesCollection, invoiceData);
+
+      toast({ title: "Success!", description: "Invoice generated and saved." });
+      clearInvoice();
+      if (onInvoiceGenerated) onInvoiceGenerated();
+
+    } catch(error) {
+      console.error("Error generating invoice:", error);
+      toast({
+        title: "Invoice Generation Failed",
+        description: "Could not save the invoice. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }
+
 
   if (items.length === 0) {
     return (
@@ -167,11 +260,7 @@ export default function InvoiceDetails({ onShare }: InvoiceDetailsProps) {
           </Button>
           <Button 
             className="bg-accent text-accent-foreground hover:bg-accent/90 text-base font-bold"
-            onClick={() => {
-              toast({ title: "Success!", description: "Invoice generated and ready for payment." });
-              clearInvoice();
-              if (onShare) onShare();
-            }}
+            onClick={handleGenerateInvoice}
           >
             Generate Invoice
           </Button>
@@ -180,3 +269,5 @@ export default function InvoiceDetails({ onShare }: InvoiceDetailsProps) {
     </div>
   );
 }
+
+    

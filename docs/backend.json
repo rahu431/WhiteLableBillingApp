@@ -17,8 +17,7 @@
         },
         "credentials": {
           "type": "string",
-          "description": "The credentials used to access the Google Sheet (e.g., JSON key).",
-          "format": "uri"
+          "description": "The credentials used to access the Google Sheet (e.g., JSON key)."
         },
         "lastUpdated": {
           "type": "string",
@@ -31,6 +30,43 @@
         "spreadsheetUrl",
         "credentials"
       ]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "type": "object",
+      "description": "Represents a customer invoice.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who created the invoice."
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "price": { "type": "number" },
+              "quantity": { "type": "number" },
+              "discount": { "type": "number" }
+            },
+            "required": ["id", "name", "price", "quantity"]
+          }
+        },
+        "subtotal": { "type": "number" },
+        "tax": { "type": "number" },
+        "packagingCharge": { "type": "number" },
+        "serviceCharge": { "type": "number" },
+        "totalDiscount": { "type": "number" },
+        "total": { "type": "number" },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the invoice was created."
+        }
+      },
+      "required": ["userId", "items", "total", "createdAt"]
     }
   },
   "auth": {
@@ -56,8 +92,23 @@
             }
           ]
         }
+      },
+      {
+        "path": "/invoices/{invoiceId}",
+        "definition": {
+            "entityName": "Invoice",
+            "schema": { "$ref": "#/backend/entities/Invoice" },
+            "description": "Stores individual invoice documents.",
+            "params": [
+                {
+                    "name": "invoiceId",
+                    "description": "Unique identifier for the invoice document."
+                }
+            ]
+        }
       }
     ],
     "reasoning": "Given the application's requirement to manage Google Sheet settings and user management via Firebase Authentication, the following Firestore structure is recommended:\n\n1.  **/google_sheet_settings/{settingId}**: This collection will store the Google Sheet settings. Authorization Independence is achieved because no subcollections exist and no parent document attributes are relied upon. Security rules can directly validate the properties of the `GoogleSheetSetting` document based on user roles (if implemented) or other criteria.\n\nThis structure supports required QAPs:\n\n*   Secure `list` operations: As all documents in `/google_sheet_settings` share the same security requirements, listing operations can be secured effectively. No filtering based on document content is required in the rules.\n\n2.  The use of dedicated collections and simple document structures facilitates clear and robust security rules, adhering to the principles of Authorization Independence, DBAC (database-based access control), and QAPs (rules are not filters)."
   }
 }
+    

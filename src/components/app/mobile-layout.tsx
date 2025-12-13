@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -13,6 +14,8 @@ export default function MobileLayout() {
   const [isSheetOpen, setSheetOpen] = useState(false);
   const { items, total } = useInvoice();
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
+
+  const closeSheet = () => setSheetOpen(false);
 
   return (
     <div className="relative min-h-screen w-full p-4 pb-28">
@@ -38,7 +41,7 @@ export default function MobileLayout() {
               <SheetTitle className="text-2xl">Current Invoice</SheetTitle>
             </SheetHeader>
             <div className="flex-grow overflow-auto">
-              <InvoiceDetails onShare={() => setSheetOpen(false)} />
+              <InvoiceDetails onShare={closeSheet} onInvoiceGenerated={closeSheet} />
             </div>
           </SheetContent>
         </Sheet>
@@ -46,3 +49,5 @@ export default function MobileLayout() {
     </div>
   );
 }
+
+    
