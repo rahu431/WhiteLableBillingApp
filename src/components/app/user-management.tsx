@@ -1,47 +1,50 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUser, useAuth } from '@/firebase';
-import { Button } from '../ui/button';
-import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
-import Link from 'next/link';
+import { useUser } from '@/firebase';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Skeleton } from '../ui/skeleton';
 
 export default function UserManagement() {
   const { user, isUserLoading } = useUser();
-  const auth = useAuth();
-
-  const handleSignIn = () => {
-    if (auth) {
-      initiateAnonymousSignIn(auth);
-    }
-  };
+  
+  const getUserInitials = () => {
+    if (user?.isAnonymous) return "AN";
+    if (user?.email) return user.email.charAt(0).toUpperCase();
+    if (user?.displayName) return user.displayName.charAt(0).toUpperCase();
+    return "U";
+  }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>User Management</CardTitle>
+        <CardTitle>User Profile</CardTitle>
         <CardDescription>
-          Manage users in your application.
+          This is your user profile information. Full user management requires a backend implementation.
         </CardDescription>
       </CardHeader>
       <CardContent>
         {isUserLoading ? (
-          <p>Loading user...</p>
-        ) : user ? (
-          <div>
-            <p>Welcome, {user.isAnonymous ? 'Anonymous User' : user.email || 'User'}!</p>
-            <p>User ID: {user.uid}</p>
-          </div>
-        ) : (
-          <div className='flex flex-col items-start gap-4'>
-            <p>No user is signed in.</p>
-            <div className='flex gap-2'>
-              <Button onClick={handleSignIn}>Sign In Anonymously</Button>
-              <Button asChild variant="outline">
-                <Link href="/login">Login with Email</Link>
-              </Button>
+          <div className="flex items-center space-x-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
             </div>
           </div>
+        ) : user ? (
+          <div className="flex items-center space-x-4">
+            <Avatar className='h-16 w-16'>
+              {user.photoURL && <AvatarImage src={user.photoURL} alt="User avatar" />}
+              <AvatarFallback className='text-xl'>{getUserInitials()}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-lg font-semibold">{user.displayName || (user.isAnonymous ? 'Anonymous User' : 'User')}</p>
+              <p className="text-sm text-muted-foreground">{user.email || `UID: ${user.uid}`}</p>
+            </div>
+          </div>
+        ) : (
+          <p>No user is signed in. You should be redirected to the login page.</p>
         )}
       </CardContent>
     </Card>
