@@ -11,7 +11,7 @@ import {
   SidebarTrigger,
   SidebarFooter
 } from '@/components/ui/sidebar';
-import { Home, Settings, Package, BookUser, LogOut } from 'lucide-react';
+import { Home, Settings, Package, BookUser, LogOut, User } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useUser } from '@/firebase';
 import { useEffect } from 'react';
@@ -168,7 +168,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                   <Link href="/settings">
-                    <Users className="mr-2 h-4 w-4" />
+                    <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </Link>
               </DropdownMenuItem>
