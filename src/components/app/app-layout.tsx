@@ -10,16 +10,28 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Home, Settings, Package, Users } from 'lucide-react';
+import { Home, Settings, Package, Users, LogOut } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { signOut } from 'firebase/auth';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isUserLoading } = useUser();
+  const auth = useAuth();
 
   useEffect(() => {
     // If auth is not loading and there's no user, redirect to login.
@@ -27,6 +39,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
+
+  const handleLogout = () => {
+    if (auth) {
+      signOut(auth);
+    }
+  };
+  
+  const getUserInitials = () => {
+    if (user?.isAnonymous) return "AN";
+    if (user?.email) return user.email.charAt(0).toUpperCase();
+    return "U";
+  }
 
   // While checking auth, show a loading state.
   if (isUserLoading || !user) {
@@ -44,7 +68,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex-1 flex flex-col">
             <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
                 <Skeleton className="h-8 w-8 rounded-full md:hidden" />
-                <Skeleton className="h-8 w-32 ml-auto" />
+                <div className="flex-1" />
+                <Skeleton className="h-8 w-8 rounded-full" />
             </header>
             <main className="flex-1 p-4 md:p-6">
                  <Skeleton className="h-full w-full" />
@@ -123,6 +148,31 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex-1">
             {/* Can add search or other header items here */}
           </div>
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Avatar>
+                  {user.photoURL && <AvatarImage src={user.photoURL} alt="User avatar" />}
+                  <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                  <Link href="/settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </header>
         <main className="flex-1 p-4 md:p-6">{children}</main>
       </SidebarInset>
