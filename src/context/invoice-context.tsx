@@ -7,7 +7,7 @@ import { TAX_RATE, DISCOUNT_AMOUNT, PACKAGING_CHARGE, SERVICE_CHARGE } from '@/l
 
 interface InvoiceContextType {
   items: InvoiceItem[];
-  addItem: (product: Product) => void;
+  addItem: (product: Product, quantity?: number) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, newQuantity: number) => void;
   updateItemPrice: (productId: string, newPrice: number) => void;
@@ -26,15 +26,15 @@ export const InvoiceContext = createContext<InvoiceContextType | undefined>(unde
 export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<InvoiceItem[]>([]);
 
-  const addItem = useCallback((product: Product) => {
+  const addItem = useCallback((product: Product, quantity = 1) => {
     setItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
       if (existingItem) {
         return prevItems.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
         );
       }
-      return [...prevItems, { ...product, quantity: 1, discount: 0 }];
+      return [...prevItems, { ...product, quantity: quantity, discount: 0 }];
     });
   }, []);
 
