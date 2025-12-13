@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import { FcGoogle } from 'react-icons/fc';
 
 export default function SettingsPage() {
     const { toast } = useToast();
@@ -25,6 +26,14 @@ export default function SettingsPage() {
         toast({
             title: "Settings Saved",
             description: "Your new settings have been saved.",
+        });
+    }
+
+    const handleGoogleConnect = () => {
+        // Placeholder for Google connection logic
+        toast({
+            title: "Coming Soon!",
+            description: "Connecting with Google to manage spreadsheets is on our roadmap.",
         });
     }
 
@@ -111,25 +120,24 @@ export default function SettingsPage() {
           <TabsContent value="integrations">
             <Card>
               <CardHeader>
-                <CardTitle>Google Sheets</CardTitle>
+                <CardTitle>Google Sheets Integration</CardTitle>
                 <CardDescription>
-                  Manage settings for Google Sheets integration.
+                  Connect your Google account to select or create a spreadsheet to store your invoice data.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <form className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="spreadsheet-url">Spreadsheet URL</Label>
-                    <Input id="spreadsheet-url" placeholder="Enter your Google Sheet URL" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="credentials">Credentials</Label>
-                    <Input id="credentials" type="text" placeholder="Enter your credentials" />
-                  </div>
-                </form>
+              <CardContent className="flex flex-col items-center justify-center pt-8">
+                 <Button variant="outline" onClick={handleGoogleConnect} className="w-full max-w-xs">
+                  <FcGoogle className="mr-2 h-5 w-5" />
+                  Connect with Google
+                </Button>
+                 <p className="text-sm text-muted-foreground mt-4">
+                  You will be redirected to Google to authorize the connection.
+                </p>
               </CardContent>
               <CardFooter className="border-t px-6 py-4">
-                <Button>Save</Button>
+                <p className="text-xs text-muted-foreground">
+                    By connecting your Google account, you allow this app to access your Google Sheets.
+                </p>
               </CardFooter>
             </Card>
           </TabsContent>
