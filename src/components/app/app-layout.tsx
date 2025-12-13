@@ -9,6 +9,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarTrigger,
+  SidebarFooter
 } from '@/components/ui/sidebar';
 import { Home, Settings, Package, Users, LogOut } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -116,20 +117,33 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === '/settings'}
-                tooltip={{ children: 'Settings' }}
-              >
-                <Link href="/settings">
-                  <Settings />
-                  <span>Settings</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
+        <SidebarFooter>
+            <SidebarMenu>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton
+                        asChild
+                        isActive={pathname === '/settings'}
+                        tooltip={{ children: 'Settings' }}
+                    >
+                        <Link href="/settings">
+                        <Settings />
+                        <span>Settings</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton
+                        onClick={handleLogout}
+                        tooltip={{ children: 'Logout' }}
+                    >
+                        <LogOut />
+                        <span>Logout</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
