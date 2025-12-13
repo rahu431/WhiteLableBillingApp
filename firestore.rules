@@ -1,0 +1,66 @@
+/**
+ * Core Philosophy:
+ * This ruleset manages access to global application settings, specifically for Google Sheets integration.
+ * The security model is designed for a prototyping phase, where any authenticated user is treated as an administrator
+ * with full control over the settings. This allows for rapid development and testing of the settings management feature.
+ * For a production environment, it is CRITICAL to replace the simple `isSignedIn()` check with a robust,
+ * role-based access control system (e.g., using custom claims) to ensure only authorized administrators
+ * can read or modify these sensitive credentials.
+ *
+ * Data Structure:
+ * The data is organized in a single top-level collection:
+ * - /google_sheet_settings/{settingId}: Contains individual documents for different settings configurations.
+ *
+ * Key Security Decisions:
+ * - Authenticated Access Only: All operations (read, write, delete) are restricted to signed-in users.
+ * - No Public Access: Unauthenticated users have no access to prevent any potential data leakage.
+ * - Listing is Disallowed: To protect sensitive information and prevent clients from discovering all
+ *   possible setting configurations, `list` operations are explicitly forbidden. Clients must know the exact
+ *   ID of the settings document they wish to access.
+ *
+ * Denormalization for Authorization:
+ * This is not applicable for this simple data structure, as there are no complex relationships that
+ * would require denormalizing data for security checks.
+ *
+ * Structural Segregation:
+ * This is not applicable as all data within the `/google_sheet_settings` collection is considered
+ * private and administrative. There is no mix of public and private data.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper Functions
+
+    /**
+     * Checks if a user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description
+     * Rules for the global Google Sheet settings collection. During prototyping, this allows any
+     * authenticated user to manage settings. In production, this MUST be restricted to
+     * administrative roles.
+     * @path
+     * /google_sheet_settings/{settingId}
+     * @allow
+     * An authenticated user (create) a new settings document.
+     * @deny
+     * An unauthenticated user (get) a settings document.
+     * @deny
+     * Any user (list) all settings documents.
+     * @principle
+     * Restricts access to authenticated users as a baseline for administrative data. Disallows listing for security.
+     */
+    match /google_sheet_settings/{settingId} {
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.id == settingId;
+      allow update: if isSignedIn() && resource != null && request.resource.data.id == resource.data.id;
+      allow delete: if isSignedIn() && resource != null;
+    }
+  }
+}

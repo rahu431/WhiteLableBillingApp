@@ -1,0 +1,63 @@
+{
+  "entities": {
+    "GoogleSheetSetting": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "GoogleSheetSetting",
+      "type": "object",
+      "description": "Stores the Google Sheets settings for the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Google Sheet setting."
+        },
+        "spreadsheetUrl": {
+          "type": "string",
+          "description": "The URL of the Google Sheet used for data storage.",
+          "format": "uri"
+        },
+        "credentials": {
+          "type": "string",
+          "description": "The credentials used to access the Google Sheet (e.g., JSON key).",
+          "format": "uri"
+        },
+        "lastUpdated": {
+          "type": "string",
+          "description": "The timestamp of the last update to these settings.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "spreadsheetUrl",
+        "credentials"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/google_sheet_settings/{settingId}",
+        "definition": {
+          "entityName": "GoogleSheetSetting",
+          "schema": {
+            "$ref": "#/backend/entities/GoogleSheetSetting"
+          },
+          "description": "Stores Google Sheet settings. All documents in this collection have the same security requirements.",
+          "params": [
+            {
+              "name": "settingId",
+              "description": "Unique identifier for the Google Sheet setting document."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "Given the application's requirement to manage Google Sheet settings and user management via Firebase Authentication, the following Firestore structure is recommended:\n\n1.  **/google_sheet_settings/{settingId}**: This collection will store the Google Sheet settings. Authorization Independence is achieved because no subcollections exist and no parent document attributes are relied upon. Security rules can directly validate the properties of the `GoogleSheetSetting` document based on user roles (if implemented) or other criteria.\n\nThis structure supports required QAPs:\n\n*   Secure `list` operations: As all documents in `/google_sheet_settings` share the same security requirements, listing operations can be secured effectively. No filtering based on document content is required in the rules.\n\n2.  The use of dedicated collections and simple document structures facilitates clear and robust security rules, adhering to the principles of Authorization Independence, DBAC (database-based access control), and QAPs (rules are not filters)."
+  }
+}
