@@ -5,15 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/firebase";
-import { initiateEmailSignIn } from "@/firebase/non-blocking-login";
-import { useState } from "react";
+import { useAuth, useUser } from "@/firebase";
+import { initiateEmailSignIn, initiateGoogleSignIn } from "@/firebase/non-blocking-login";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const auth = useAuth();
+    const { user, isUserLoading } = useUser();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!isUserLoading && user) {
+            router.push('/');
+        }
+    }, [user, isUserLoading, router]);
 
     const handleEmailLogin = () => {
         if (auth && email && password) {
@@ -22,9 +31,18 @@ export default function LoginPage() {
     };
 
     const handleGoogleSignIn = () => {
-        // Placeholder for Google Sign-In
-        console.log("Google Sign-In clicked");
+        if (auth) {
+            initiateGoogleSignIn(auth);
+        }
     };
+
+    if (isUserLoading || user) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-background">
+                <p>Loading...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-background">
