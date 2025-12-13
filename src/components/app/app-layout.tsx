@@ -119,18 +119,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === '/users'}
-                tooltip={{ children: 'Users' }}
-              >
-                <Link href="/users">
-                  <Users />
-                  <span>Users</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
                 isActive={pathname === '/settings'}
                 tooltip={{ children: 'Settings' }}
               >
