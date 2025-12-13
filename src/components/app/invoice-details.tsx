@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useInvoice } from '@/hooks/use-invoice';
@@ -14,7 +15,7 @@ interface InvoiceDetailsProps {
 }
 
 export default function InvoiceDetails({ onShare }: InvoiceDetailsProps) {
-  const { items, subtotal, tax, discount, total, removeItem, updateQuantity, clearInvoice } = useInvoice();
+  const { items, subtotal, tax, packagingCharge, serviceCharge, discount, total, removeItem, updateQuantity, clearInvoice } = useInvoice();
   const { toast } = useToast();
 
   const handleShare = () => {
@@ -27,13 +28,18 @@ export default function InvoiceDetails({ onShare }: InvoiceDetailsProps) {
       return;
     }
 
-    const invoiceText = items.map(item => 
+    const itemsText = items.map(item => 
       `- ${item.name} (x${item.quantity}): ${formatCurrency(item.price * item.quantity)}`
     ).join('\n');
 
-    const summaryText = `\n--------------------\nSubtotal: ${formatCurrency(subtotal)}\nTax: ${formatCurrency(tax)}\nTotal: ${formatCurrency(total)}`;
+    let summaryText = `\n--------------------\nSubtotal: ${formatCurrency(subtotal)}`;
+    if (tax > 0) summaryText += `\nTax: ${formatCurrency(tax)}`;
+    if (packagingCharge > 0) summaryText += `\nPackaging: ${formatCurrency(packagingCharge)}`;
+    if (serviceCharge > 0) summaryText += `\nService Charge: ${formatCurrency(serviceCharge)}`;
+    if (discount > 0) summaryText += `\nDiscount: -${formatCurrency(discount)}`;
+    summaryText += `\n--------------------\n*Total: ${formatCurrency(total)}*`;
     
-    const message = encodeURIComponent(`*Your Invoice*:\n\n${invoiceText}\n${summaryText}`);
+    const message = encodeURIComponent(`*Your Invoice*:\n\n${itemsText}\n${summaryText}`);
     window.open(`https://wa.me/?text=${message}`, '_blank');
     if (onShare) onShare();
   };
@@ -81,10 +87,24 @@ export default function InvoiceDetails({ onShare }: InvoiceDetailsProps) {
             <span>Subtotal</span>
             <span>{formatCurrency(subtotal)}</span>
           </div>
-          <div className="flex justify-between">
-            <span>Tax</span>
-            <span>{formatCurrency(tax)}</span>
-          </div>
+          {tax > 0 && (
+            <div className="flex justify-between">
+              <span>Tax</span>
+              <span>{formatCurrency(tax)}</span>
+            </div>
+          )}
+          {packagingCharge > 0 && (
+             <div className="flex justify-between">
+              <span>Packaging</span>
+              <span>{formatCurrency(packagingCharge)}</span>
+            </div>
+          )}
+          {serviceCharge > 0 && (
+             <div className="flex justify-between">
+              <span>Service</span>
+              <span>{formatCurrency(serviceCharge)}</span>
+            </div>
+          )}
           {discount > 0 && (
             <div className="flex justify-between text-green-600">
               <span>Discount</span>

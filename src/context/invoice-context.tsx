@@ -1,8 +1,9 @@
+
 "use client";
 
 import React, { createContext, useState, useMemo, useCallback } from 'react';
 import type { InvoiceItem, Product } from '@/lib/types';
-import { TAX_RATE, DISCOUNT_AMOUNT } from '@/lib/constants';
+import { TAX_RATE, DISCOUNT_AMOUNT, PACKAGING_CHARGE, SERVICE_CHARGE } from '@/lib/constants';
 
 interface InvoiceContextType {
   items: InvoiceItem[];
@@ -12,6 +13,8 @@ interface InvoiceContextType {
   clearInvoice: () => void;
   subtotal: number;
   tax: number;
+  packagingCharge: number;
+  serviceCharge: number;
   discount: number;
   total: number;
 }
@@ -60,12 +63,14 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const tax = useMemo(() => {
     return subtotal * TAX_RATE;
   }, [subtotal]);
-
+  
+  const packagingCharge = PACKAGING_CHARGE;
+  const serviceCharge = SERVICE_CHARGE;
   const discount = DISCOUNT_AMOUNT;
 
   const total = useMemo(() => {
-    return subtotal + tax - discount;
-  }, [subtotal, tax, discount]);
+    return subtotal + tax + packagingCharge + serviceCharge - discount;
+  }, [subtotal, tax, packagingCharge, serviceCharge, discount]);
 
   const value = {
     items,
@@ -75,6 +80,8 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     clearInvoice,
     subtotal,
     tax,
+    packagingCharge,
+    serviceCharge,
     discount,
     total,
   };
