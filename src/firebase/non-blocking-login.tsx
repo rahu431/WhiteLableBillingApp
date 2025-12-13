@@ -4,7 +4,6 @@ import {
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  // Assume getAuth and app are initialized elsewhere
 } from 'firebase/auth';
 
 /** Initiate anonymous sign-in (non-blocking). */

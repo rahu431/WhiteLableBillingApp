@@ -1,17 +1,19 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUser } from '@/firebase';
+import { useUser, useAuth } from '@/firebase';
 import { Button } from '../ui/button';
 import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
-import { useAuth } from '@/firebase/provider';
+import Link from 'next/link';
 
 export default function UserManagement() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
 
   const handleSignIn = () => {
-    initiateAnonymousSignIn(auth);
+    if (auth) {
+      initiateAnonymousSignIn(auth);
+    }
   };
 
   return (
@@ -27,13 +29,18 @@ export default function UserManagement() {
           <p>Loading user...</p>
         ) : user ? (
           <div>
-            <p>Welcome, {user.isAnonymous ? 'Anonymous User' : user.email}!</p>
+            <p>Welcome, {user.isAnonymous ? 'Anonymous User' : user.email || 'User'}!</p>
             <p>User ID: {user.uid}</p>
           </div>
         ) : (
-          <div>
+          <div className='flex flex-col items-start gap-4'>
             <p>No user is signed in.</p>
-            <Button onClick={handleSignIn} className="mt-4">Sign In Anonymously</Button>
+            <div className='flex gap-2'>
+              <Button onClick={handleSignIn}>Sign In Anonymously</Button>
+              <Button asChild variant="outline">
+                <Link href="/login">Login with Email</Link>
+              </Button>
+            </div>
           </div>
         )}
       </CardContent>
