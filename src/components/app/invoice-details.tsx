@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useInvoice } from '@/hooks/use-invoice';
@@ -6,7 +5,7 @@ import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Trash2, ShoppingBag, Share2, Minus, Plus } from 'lucide-react';
+import { Trash2, ShoppingBag, Share2, Minus, Plus, Percent } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '../ui/input';
 import { useFirestore, useUser } from '@/firebase';
@@ -30,7 +29,7 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
     removeItem, 
     updateQuantity,
     updateItemPrice,
-    updateItemDiscount,
+    toggleItemDiscount,
     clearInvoice 
   } = useInvoice();
   const { toast } = useToast();
@@ -186,7 +185,7 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
                 </div>
-                <div className="grid grid-cols-3 gap-2 items-center">
+                <div className="grid grid-cols-2 gap-4 items-end">
                    <div className="space-y-1">
                       <label className="text-xs text-muted-foreground">Qty</label>
                       <div className="flex items-center">
@@ -200,23 +199,27 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity + 1)}> <Plus className="h-3 w-3" /> </Button>
                       </div>
                    </div>
-                   <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">Price</label>
-                      <Input 
-                        type="number"
-                        value={item.price}
-                        onChange={(e) => updateItemPrice(item.id, parseFloat(e.target.value) || 0)}
-                        className="h-8"
-                      />
-                   </div>
-                   <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">Discount</label>
-                      <Input
-                        type="number"
-                        value={item.discount}
-                        onChange={(e) => updateItemDiscount(item.id, parseFloat(e.target.value) || 0)}
-                        className="h-8"
-                      />
+                   <div className="flex gap-2">
+                        <div className="space-y-1 flex-grow">
+                          <label className="text-xs text-muted-foreground">Price</label>
+                          <Input 
+                            type="number"
+                            value={item.price}
+                            onChange={(e) => updateItemPrice(item.id, parseFloat(e.target.value) || 0)}
+                            className="h-8"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                             <label className="text-xs text-muted-foreground">Discount</label>
+                             <Button
+                                variant={item.discount > 0 ? "secondary" : "outline"}
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => toggleItemDiscount(item.id)}
+                            >
+                                <Percent className="h-4 w-4" />
+                            </Button>
+                        </div>
                    </div>
                 </div>
               </div>

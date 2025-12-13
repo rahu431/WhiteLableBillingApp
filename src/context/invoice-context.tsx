@@ -12,6 +12,7 @@ interface InvoiceContextType {
   updateQuantity: (productId: string, newQuantity: number) => void;
   updateItemPrice: (productId: string, newPrice: number) => void;
   updateItemDiscount: (productId: string, newDiscount: number) => void;
+  toggleItemDiscount: (productId: string) => void;
   clearInvoice: () => void;
   subtotal: number;
   tax: number;
@@ -70,6 +71,18 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
   }, []);
 
+  const toggleItemDiscount = useCallback((productId: string) => {
+    setItems((prevItems) =>
+      prevItems.map((item) => {
+        if (item.id === productId) {
+          const newDiscount = item.discount > 0 ? 0 : item.price * 0.10; // 10% discount
+          return { ...item, discount: newDiscount };
+        }
+        return item;
+      })
+    );
+  }, []);
+
   const clearInvoice = useCallback(() => {
     setItems([]);
   }, []);
@@ -101,6 +114,7 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateQuantity,
     updateItemPrice,
     updateItemDiscount,
+    toggleItemDiscount,
     clearInvoice,
     subtotal,
     tax,
