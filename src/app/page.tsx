@@ -1,3 +1,10 @@
+import { InvoiceProvider } from '@/context/invoice-context';
+import AppShell from '@/components/app/app-shell';
+
 export default function Home() {
-  return <></>;
+  return (
+    <InvoiceProvider>
+      <AppShell />
+    </InvoiceProvider>
+  );
 }
