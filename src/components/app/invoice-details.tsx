@@ -11,8 +11,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Input } from '../ui/input';
 import { useFirestore, useUser } from '@/firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 
 interface InvoiceDetailsProps {
@@ -149,22 +147,19 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
       createdAt: serverTimestamp(),
     };
     
-    const invoicesCollection = collection(firestore, 'invoices');
-    addDoc(invoicesCollection, invoiceData)
-      .then(() => {
-        toast({ title: "Success!", description: "Invoice generated and saved." });
-        clearInvoice();
-        if (onInvoiceGenerated) onInvoiceGenerated();
-      })
-      .catch((serverError) => {
-        const permissionError = new FirestorePermissionError({
-          path: invoicesCollection.path,
-          operation: 'create',
-          requestResourceData: invoiceData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        // We don't show a toast here because the global listener will handle it.
+    try {
+      const invoicesCollection = collection(firestore, 'invoices');
+      await addDoc(invoicesCollection, invoiceData);
+      toast({ title: "Success!", description: "Invoice generated and saved." });
+      clearInvoice();
+      if (onInvoiceGenerated) onInvoiceGenerated();
+    } catch (e: any) {
+       toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: e.message || "Could not save invoice.",
       });
+    }
   }
 
 
