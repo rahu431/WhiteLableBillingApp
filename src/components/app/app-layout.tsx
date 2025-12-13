@@ -133,15 +133,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
-                <SidebarMenuItem>
-                    <SidebarMenuButton
-                        onClick={handleLogout}
-                        tooltip={{ children: 'Logout' }}
-                    >
-                        <LogOut />
-                        <span>Logout</span>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
             </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
@@ -164,7 +155,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                  <Link href="/users">
+                  <Link href="/settings">
                     <Users className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </Link>
