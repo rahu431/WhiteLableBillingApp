@@ -9,31 +9,69 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
-import { FcGoogle } from 'react-icons/fc';
+import { useEffect, useState } from 'react';
+import { doc } from 'firebase/firestore';
+import { useDoc, useFirestore, useUser, setDocumentNonBlocking } from '@/firebase';
+import { Textarea } from '@/components/ui/textarea';
+
+const SETTINGS_DOC_ID = 'global-sheet-settings';
 
 export default function SettingsPage() {
     const { toast } = useToast();
+    const { user } = useUser();
+    const firestore = useFirestore();
+
+    // E-commerce state
     const [currency, setCurrency] = useState('USD');
     const [taxRate, setTaxRate] = useState('10');
     const [packagingCharge, setPackagingCharge] = useState('0');
     const [serviceCharge, setServiceCharge] = useState('0');
     const [discount, setDiscount] = useState('0');
 
-    const handleSave = () => {
-        // Here you would typically save these values to a backend or context
-        // For now, we'll just show a toast notification
+    // Google Sheets state
+    const [spreadsheetUrl, setSpreadsheetUrl] = useState('');
+    const [credentials, setCredentials] = useState('');
+
+    const settingsDocRef = firestore ? doc(firestore, 'google_sheet_settings', SETTINGS_DOC_ID) : null;
+    const { data: sheetSettings, isLoading: isLoadingSettings } = useDoc(settingsDocRef);
+    
+    useEffect(() => {
+        if (sheetSettings) {
+            setSpreadsheetUrl(sheetSettings.spreadsheetUrl || '');
+            setCredentials(sheetSettings.credentials || '');
+        }
+    }, [sheetSettings]);
+
+
+    const handleEcommerceSave = () => {
         toast({
             title: "Settings Saved",
-            description: "Your new settings have been saved.",
+            description: "Your new e-commerce settings have been saved.",
         });
     }
 
-    const handleGoogleConnect = () => {
-        // Placeholder for Google connection logic
+    const handleGoogleSheetsSave = () => {
+        if (!user || !settingsDocRef) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'You must be logged in to save settings.',
+            });
+            return;
+        }
+
+        const newSettings = {
+            id: SETTINGS_DOC_ID,
+            spreadsheetUrl: spreadsheetUrl,
+            credentials: credentials,
+            lastUpdated: new Date().toISOString(),
+        };
+
+        setDocumentNonBlocking(settingsDocRef, newSettings, { merge: true });
+
         toast({
-            title: "Coming Soon!",
-            description: "Connecting with Google to manage spreadsheets is on our roadmap.",
+            title: "Settings Saved",
+            description: "Your Google Sheets settings have been updated.",
         });
     }
 
@@ -88,7 +126,7 @@ export default function SettingsPage() {
                 </form>
               </CardContent>
               <CardFooter className="border-t px-6 py-4">
-                <Button onClick={handleSave}>Save</Button>
+                <Button onClick={handleEcommerceSave}>Save</Button>
               </CardFooter>
             </Card>
           </TabsContent>
@@ -122,22 +160,38 @@ export default function SettingsPage() {
               <CardHeader>
                 <CardTitle>Google Sheets Integration</CardTitle>
                 <CardDescription>
-                  Connect your Google account to select or create a spreadsheet to store your invoice data.
+                  Enter your Google Sheet URL and Service Account credentials to store invoice data.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center pt-8">
-                 <Button variant="outline" onClick={handleGoogleConnect} className="w-full max-w-xs">
-                  <FcGoogle className="mr-2 h-5 w-5" />
-                  Connect with Google
-                </Button>
-                 <p className="text-sm text-muted-foreground mt-4">
-                  You will be redirected to Google to authorize the connection.
-                </p>
+              <CardContent>
+                 {isLoadingSettings ? (
+                   <p>Loading settings...</p>
+                 ) : (
+                    <form className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="spreadsheet-url">Spreadsheet URL</Label>
+                            <Input 
+                                id="spreadsheet-url" 
+                                placeholder="https://docs.google.com/spreadsheets/d/..." 
+                                value={spreadsheetUrl}
+                                onChange={(e) => setSpreadsheetUrl(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="credentials">Service Account Credentials (JSON)</Label>
+                            <Textarea
+                                id="credentials"
+                                placeholder='{ "type": "service_account", ... }'
+                                className="min-h-[150px] font-mono"
+                                value={credentials}
+                                onChange={(e) => setCredentials(e.target.value)}
+                            />
+                        </div>
+                    </form>
+                 )}
               </CardContent>
               <CardFooter className="border-t px-6 py-4">
-                <p className="text-xs text-muted-foreground">
-                    By connecting your Google account, you allow this app to access your Google Sheets.
-                </p>
+                <Button onClick={handleGoogleSheetsSave}>Save Settings</Button>
               </CardFooter>
             </Card>
           </TabsContent>
