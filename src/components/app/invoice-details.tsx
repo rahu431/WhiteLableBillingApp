@@ -6,16 +6,30 @@ import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Trash2, ShoppingBag, Share2 } from 'lucide-react';
+import { Trash2, ShoppingBag, Share2, Minus, Plus } from 'lucide-react';
 import QuantityControl from './quantity-control';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '../ui/input';
 
 interface InvoiceDetailsProps {
   onShare?: () => void;
 }
 
 export default function InvoiceDetails({ onShare }: InvoiceDetailsProps) {
-  const { items, subtotal, tax, packagingCharge, serviceCharge, discount, total, removeItem, updateQuantity, clearInvoice } = useInvoice();
+  const { 
+    items, 
+    subtotal, 
+    tax, 
+    packagingCharge, 
+    serviceCharge, 
+    totalDiscount, 
+    total, 
+    removeItem, 
+    updateQuantity,
+    updateItemPrice,
+    updateItemDiscount,
+    clearInvoice 
+  } = useInvoice();
   const { toast } = useToast();
 
   const handleShare = () => {
@@ -28,15 +42,20 @@ export default function InvoiceDetails({ onShare }: InvoiceDetailsProps) {
       return;
     }
 
-    const itemsText = items.map(item => 
-      `- ${item.name} (x${item.quantity}): ${formatCurrency(item.price * item.quantity)}`
-    ).join('\n');
+    const itemsText = items.map(item => {
+      let itemText = `- ${item.name} (x${item.quantity}): ${formatCurrency(item.price * item.quantity)}`;
+      if (item.discount > 0) {
+        itemText += ` (Discount: ${formatCurrency(item.discount * item.quantity)})`;
+      }
+      return itemText;
+    }).join('\n');
+    
 
     let summaryText = `\n--------------------\nSubtotal: ${formatCurrency(subtotal)}`;
+    if (totalDiscount > 0) summaryText += `\nTotal Discount: -${formatCurrency(totalDiscount)}`;
     if (tax > 0) summaryText += `\nTax: ${formatCurrency(tax)}`;
     if (packagingCharge > 0) summaryText += `\nPackaging: ${formatCurrency(packagingCharge)}`;
     if (serviceCharge > 0) summaryText += `\nService Charge: ${formatCurrency(serviceCharge)}`;
-    if (discount > 0) summaryText += `\nDiscount: -${formatCurrency(discount)}`;
     summaryText += `\n--------------------\n*Total: ${formatCurrency(total)}*`;
     
     const message = encodeURIComponent(`*Your Invoice*:\n\n${itemsText}\n${summaryText}`);
@@ -60,20 +79,45 @@ export default function InvoiceDetails({ onShare }: InvoiceDetailsProps) {
         <CardContent className="p-4 h-full overflow-y-auto">
           <div className="space-y-4">
             {items.map((item) => (
-              <div key={item.id} className="flex items-center">
-                <div className="flex-grow">
-                  <p className="font-semibold">{item.name}</p>
-                  <p className="text-sm text-muted-foreground">{formatCurrency(item.price)} each</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <QuantityControl
-                    quantity={item.quantity}
-                    onIncrease={() => updateQuantity(item.id, item.quantity + 1)}
-                    onDecrease={() => updateQuantity(item.id, item.quantity - 1)}
-                  />
-                  <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)} aria-label={`Remove ${item.name}`}>
+              <div key={item.id} className="flex flex-col gap-2 border-b pb-3">
+                <div className="flex items-center">
+                  <p className="font-semibold flex-grow">{item.name}</p>
+                   <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)} aria-label={`Remove ${item.name}`}>
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
+                </div>
+                <div className="grid grid-cols-3 gap-2 items-center">
+                   <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Qty</label>
+                      <div className="flex items-center">
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity - 1)}> <Minus className="h-3 w-3" /> </Button>
+                        <Input 
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
+                            className="w-12 text-center h-8"
+                         />
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity + 1)}> <Plus className="h-3 w-3" /> </Button>
+                      </div>
+                   </div>
+                   <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Price</label>
+                      <Input 
+                        type="number"
+                        value={item.price}
+                        onChange={(e) => updateItemPrice(item.id, parseFloat(e.target.value) || 0)}
+                        className="h-8"
+                      />
+                   </div>
+                   <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Discount</label>
+                      <Input
+                        type="number"
+                        value={item.discount}
+                        onChange={(e) => updateItemDiscount(item.id, parseFloat(e.target.value) || 0)}
+                        className="h-8"
+                      />
+                   </div>
                 </div>
               </div>
             ))}
@@ -87,6 +131,12 @@ export default function InvoiceDetails({ onShare }: InvoiceDetailsProps) {
             <span>Subtotal</span>
             <span>{formatCurrency(subtotal)}</span>
           </div>
+           {totalDiscount > 0 && (
+            <div className="flex justify-between text-green-600">
+              <span>Discount</span>
+              <span>-{formatCurrency(totalDiscount)}</span>
+            </div>
+          )}
           {tax > 0 && (
             <div className="flex justify-between">
               <span>Tax</span>
@@ -103,12 +153,6 @@ export default function InvoiceDetails({ onShare }: InvoiceDetailsProps) {
              <div className="flex justify-between">
               <span>Service</span>
               <span>{formatCurrency(serviceCharge)}</span>
-            </div>
-          )}
-          {discount > 0 && (
-            <div className="flex justify-between text-green-600">
-              <span>Discount</span>
-              <span>-{formatCurrency(discount)}</span>
             </div>
           )}
         </div>

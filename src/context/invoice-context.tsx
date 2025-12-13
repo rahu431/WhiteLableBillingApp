@@ -10,12 +10,14 @@ interface InvoiceContextType {
   addItem: (product: Product) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, newQuantity: number) => void;
+  updateItemPrice: (productId: string, newPrice: number) => void;
+  updateItemDiscount: (productId: string, newDiscount: number) => void;
   clearInvoice: () => void;
   subtotal: number;
   tax: number;
   packagingCharge: number;
   serviceCharge: number;
-  discount: number;
+  totalDiscount: number;
   total: number;
 }
 
@@ -32,7 +34,7 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      return [...prevItems, { ...product, quantity: 1 }];
+      return [...prevItems, { ...product, quantity: 1, discount: 0 }];
     });
   }, []);
 
@@ -52,6 +54,22 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [removeItem]);
 
+  const updateItemPrice = useCallback((productId: string, newPrice: number) => {
+    setItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === productId ? { ...item, price: newPrice >= 0 ? newPrice : 0 } : item
+      )
+    );
+  }, []);
+
+  const updateItemDiscount = useCallback((productId: string, newDiscount: number) => {
+    setItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === productId ? { ...item, discount: newDiscount >= 0 ? newDiscount : 0 } : item
+      )
+    );
+  }, []);
+
   const clearInvoice = useCallback(() => {
     setItems([]);
   }, []);
@@ -59,30 +77,36 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const subtotal = useMemo(() => {
     return items.reduce((acc, item) => acc + item.price * item.quantity, 0);
   }, [items]);
+  
+  const totalDiscount = useMemo(() => {
+    const itemDiscounts = items.reduce((acc, item) => acc + (item.discount || 0) * item.quantity, 0);
+    return itemDiscounts + DISCOUNT_AMOUNT;
+  }, [items]);
 
   const tax = useMemo(() => {
-    return subtotal * TAX_RATE;
-  }, [subtotal]);
+    return (subtotal - totalDiscount) * TAX_RATE;
+  }, [subtotal, totalDiscount]);
   
   const packagingCharge = PACKAGING_CHARGE;
   const serviceCharge = SERVICE_CHARGE;
-  const discount = DISCOUNT_AMOUNT;
 
   const total = useMemo(() => {
-    return subtotal + tax + packagingCharge + serviceCharge - discount;
-  }, [subtotal, tax, packagingCharge, serviceCharge, discount]);
+    return subtotal + tax + packagingCharge + serviceCharge - totalDiscount;
+  }, [subtotal, tax, packagingCharge, serviceCharge, totalDiscount]);
 
   const value = {
     items,
     addItem,
     removeItem,
     updateQuantity,
+    updateItemPrice,
+    updateItemDiscount,
     clearInvoice,
     subtotal,
     tax,
     packagingCharge,
     serviceCharge,
-    discount,
+    totalDiscount,
     total,
   };
 

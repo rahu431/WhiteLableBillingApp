@@ -9,4 +9,5 @@ export interface Product {
 
 export interface InvoiceItem extends Product {
   quantity: number;
+  discount: number;
 }
