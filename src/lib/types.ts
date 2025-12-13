@@ -5,6 +5,7 @@ export interface Product {
   name: string;
   price: number;
   icon: React.ComponentType<{ className?: string }>;
+  imageUrl: string;
 }
 
 export interface InvoiceItem extends Product {

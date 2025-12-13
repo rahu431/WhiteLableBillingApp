@@ -22,6 +22,7 @@ const productSchema = z.object({
   name: z.string().min(1, { message: "Product name is required" }),
   price: z.coerce.number().min(0, { message: "Price must be a positive number" }),
   icon: z.string().min(1, { message: "An icon is required" }),
+  imageUrl: z.string().url({ message: "Please enter a valid URL" }),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -38,7 +39,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
     defaultValues: {
       name: product?.name || '',
       price: product?.price || 0,
-      icon: productIcons.find(p => p.icon === product?.icon)?.name || ''
+      icon: productIcons.find(p => p.icon === product?.icon)?.name || '',
+      imageUrl: product?.imageUrl || ''
     }
   });
 
@@ -46,7 +48,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
     reset({
         name: product?.name || '',
         price: product?.price || 0,
-        icon: productIcons.find(p => p.icon === product?.icon)?.name || ''
+        icon: productIcons.find(p => p.icon === product?.icon)?.name || '',
+        imageUrl: product?.imageUrl || '',
     });
   }, [product, reset]);
 
@@ -66,6 +69,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
         <Label htmlFor="price">Price</Label>
         <Input id="price" type="number" step="0.01" {...register('price')} />
         {errors.price && <p className="text-sm text-destructive">{errors.price.message}</p>}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="imageUrl">Image URL</Label>
+        <Input id="imageUrl" {...register('imageUrl')} />
+        {errors.imageUrl && <p className="text-sm text-destructive">{errors.imageUrl.message}</p>}
       </div>
 
       <div className="space-y-2">

@@ -1,3 +1,52 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "consultation",
+      "description": "An image of a medical consultation.",
+      "imageUrl": "https://images.unsplash.com/photo-1638202993928-7267aad84c31?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtZWRpY2FsJTIwY29uc3VsdGF0aW9ufGVufDB8fHx8MTc2NTU5MTE4NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "medical consultation"
+    },
+    {
+      "id": "dental-cleaning",
+      "description": "An image of a dental cleaning procedure.",
+      "imageUrl": "https://images.unsplash.com/photo-1581585004042-bca38021ce1e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxkZW50YWwlMjBjbGVhbmluZ3xlbnwwfHx8fDE3NjU2NTI0MzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dental cleaning"
+    },
+    {
+      "id": "lab-test",
+      "description": "An image of a lab test.",
+      "imageUrl": "https://images.unsplash.com/photo-1595154038355-f717191eaab4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bGFiJTIwdGVzdHxlbnwwfHx8fDE3NjU2MjY3NzJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lab test"
+    },
+    {
+      "id": "vaccination",
+      "description": "An image of a vaccination.",
+      "imageUrl": "https://images.unsplash.com/photo-1615631648086-325025c9e51e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx2YWNjaW5hdGlvbnxlbnwwfHx8fDE3NjU2NTI0MzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "vaccination"
+    },
+    {
+      "id": "teeth-whitening",
+      "description": "An image for teeth whitening.",
+      "imageUrl": "https://images.unsplash.com/photo-1684607633115-394e9a139260?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx0ZWV0aCUyMHdoaXRlbmluZ3xlbnwwfHx8fDE3NjU2NDc5MTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "teeth whitening"
+    },
+    {
+      "id": "prescription",
+      "description": "An image for a medical prescription.",
+      "imageUrl": "https://images.unsplash.com/photo-1630094539413-a69caf88ce7d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxtZWRpY2FsJTIwcHJlc2NyaXB0aW9ufGVufDB8fHx8MTc2NTY1MjQzNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "medical prescription"
+    },
+    {
+      "id": "general-check-up",
+      "description": "An image for a general check-up.",
+      "imageUrl": "https://images.unsplash.com/photo-1666887359800-60e37f543dbd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxnZW5lcmFsJTIwY2hlY2t1cHxlbnwwfHx8fDE3NjU2NTI0MzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "general checkup"
+    },
+    {
+      "id": "filling",
+      "description": "An image for a dental filling.",
+      "imageUrl": "https://images.unsplash.com/photo-1631596577204-53ad0d6e6978?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxkZW50YWwlMjBmaWxsaW5nfGVufDB8fHx8MTc2NTY1MjQzNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dental filling"
+    }
+  ]
 }

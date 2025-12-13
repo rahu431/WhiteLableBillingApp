@@ -2,6 +2,7 @@
 
 import { products as initialProducts } from '@/lib/data';
 import type { Product } from '@/lib/types';
+import Image from 'next/image';
 import {
   Table,
   TableBody,
@@ -118,6 +119,9 @@ export default function ProductManagement() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="hidden w-[100px] sm:table-cell">
+                  <span className="sr-only">Image</span>
+                </TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="hidden md:table-cell">Price</TableHead>
@@ -132,6 +136,15 @@ export default function ProductManagement() {
             <TableBody>
               {filteredProducts.map((product) => (
                 <TableRow key={product.id}>
+                  <TableCell className="hidden sm:table-cell">
+                    <Image
+                      alt={product.name}
+                      className="aspect-square rounded-md object-cover"
+                      height="64"
+                      src={product.imageUrl}
+                      width="64"
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>
                     <Badge variant="outline">Active</Badge>
