@@ -48,6 +48,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   
   const getUserInitials = () => {
     if (user?.isAnonymous) return "AN";
+    if (user?.displayName) return user.displayName.slice(0, 2).toUpperCase();
     if (user?.email) return user.email.charAt(0).toUpperCase();
     return "U";
   }
@@ -160,6 +161,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                  <Link href="/users">
+                    <Users className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                   <Link href="/settings">
                     <Settings className="mr-2 h-4 w-4" />
