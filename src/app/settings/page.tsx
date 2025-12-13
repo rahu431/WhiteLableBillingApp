@@ -11,8 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { doc } from 'firebase/firestore';
-import { useDoc, useFirestore, useUser, setDocumentNonBlocking } from '@/firebase';
+import { useDoc, useFirestore, useUser, setDocumentNonBlocking, useMemoFirebase } from '@/firebase';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Terminal } from 'lucide-react';
 
 const SETTINGS_DOC_ID = 'global-sheet-settings';
 
@@ -32,8 +34,11 @@ export default function SettingsPage() {
     const [spreadsheetUrl, setSpreadsheetUrl] = useState('');
     const [credentials, setCredentials] = useState('');
 
-    const settingsDocRef = firestore ? doc(firestore, 'google_sheet_settings', SETTINGS_DOC_ID) : null;
-    const { data: sheetSettings, isLoading: isLoadingSettings } = useDoc(settingsDocRef);
+    const settingsDocRef = useMemoFirebase(() => 
+        firestore ? doc(firestore, 'google_sheet_settings', SETTINGS_DOC_ID) : null,
+        [firestore]
+    );
+    const { data: sheetSettings, isLoading: isLoadingSettings, error: sheetSettingsError } = useDoc(settingsDocRef);
     
     useEffect(() => {
         if (sheetSettings) {
@@ -73,6 +78,49 @@ export default function SettingsPage() {
             title: "Settings Saved",
             description: "Your Google Sheets settings have been updated.",
         });
+    }
+
+    const renderGoogleSheetsContent = () => {
+        if (isLoadingSettings) {
+            return <p>Loading settings...</p>;
+        }
+
+        if (sheetSettingsError) {
+            return (
+                 <Alert variant="destructive">
+                    <Terminal className="h-4 w-4" />
+                    <AlertTitle>Error Loading Settings</AlertTitle>
+                    <AlertDescription>
+                        There was a problem fetching your Google Sheets settings. Please check your connection or Firestore security rules.
+                        <pre className="mt-2 text-xs bg-destructive-foreground/10 p-2 rounded-md overflow-auto">{sheetSettingsError.message}</pre>
+                    </AlertDescription>
+                </Alert>
+            )
+        }
+
+        return (
+            <form className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="spreadsheet-url">Spreadsheet URL</Label>
+                    <Input 
+                        id="spreadsheet-url" 
+                        placeholder="https://docs.google.com/spreadsheets/d/..." 
+                        value={spreadsheetUrl}
+                        onChange={(e) => setSpreadsheetUrl(e.target.value)}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="credentials">Service Account Credentials (JSON)</Label>
+                    <Textarea
+                        id="credentials"
+                        placeholder='{ "type": "service_account", ... }'
+                        className="min-h-[150px] font-mono"
+                        value={credentials}
+                        onChange={(e) => setCredentials(e.target.value)}
+                    />
+                </div>
+            </form>
+        );
     }
 
   return (
@@ -164,31 +212,7 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                 {isLoadingSettings ? (
-                   <p>Loading settings...</p>
-                 ) : (
-                    <form className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="spreadsheet-url">Spreadsheet URL</Label>
-                            <Input 
-                                id="spreadsheet-url" 
-                                placeholder="https://docs.google.com/spreadsheets/d/..." 
-                                value={spreadsheetUrl}
-                                onChange={(e) => setSpreadsheetUrl(e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="credentials">Service Account Credentials (JSON)</Label>
-                            <Textarea
-                                id="credentials"
-                                placeholder='{ "type": "service_account", ... }'
-                                className="min-h-[150px] font-mono"
-                                value={credentials}
-                                onChange={(e) => setCredentials(e.target.value)}
-                            />
-                        </div>
-                    </form>
-                 )}
+                 {renderGoogleSheetsContent()}
               </CardContent>
               <CardFooter className="border-t px-6 py-4">
                 <Button onClick={handleGoogleSheetsSave}>Save Settings</Button>
