@@ -6,7 +6,7 @@ export default function TabletLayout() {
     <div className="flex h-screen w-full items-start">
       <div className="w-2/3 h-screen overflow-y-auto p-8">
         <header className="mb-6">
-          <h1 className="text-4xl font-bold font-headline text-primary">Care Billing</h1>
+          <h1 className="text-4xl font-bold font-headline text-primary">New Invoice</h1>
           <p className="text-muted-foreground mt-1">Select services to build the invoice.</p>
         </header>
         <ProductGrid />
