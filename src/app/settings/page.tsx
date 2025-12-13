@@ -15,6 +15,7 @@ import { useDoc, useFirestore, useUser, setDocumentNonBlocking, useMemoFirebase 
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const SETTINGS_DOC_ID = 'global-sheet-settings';
 
@@ -82,7 +83,18 @@ export default function SettingsPage() {
 
     const renderGoogleSheetsContent = () => {
         if (isLoadingSettings) {
-            return <p>Loading settings...</p>;
+            return (
+                 <div className="space-y-4">
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-1/4" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                     <div className="space-y-2">
+                        <Skeleton className="h-4 w-1/3" />
+                        <Skeleton className="h-24 w-full" />
+                    </div>
+                </div>
+            );
         }
 
         if (sheetSettingsError) {
@@ -91,7 +103,7 @@ export default function SettingsPage() {
                     <Terminal className="h-4 w-4" />
                     <AlertTitle>Error Loading Settings</AlertTitle>
                     <AlertDescription>
-                        There was a problem fetching your Google Sheets settings. Please check your connection or Firestore security rules.
+                        <p>There was a problem fetching your Google Sheets settings. Please check your Firestore security rules or network connection.</p>
                         <pre className="mt-2 text-xs bg-destructive-foreground/10 p-2 rounded-md overflow-auto">{sheetSettingsError.message}</pre>
                     </AlertDescription>
                 </Alert>
@@ -215,7 +227,7 @@ export default function SettingsPage() {
                  {renderGoogleSheetsContent()}
               </CardContent>
               <CardFooter className="border-t px-6 py-4">
-                <Button onClick={handleGoogleSheetsSave}>Save Settings</Button>
+                <Button onClick={handleGoogleSheetsSave} disabled={isLoadingSettings}>Save Settings</Button>
               </CardFooter>
             </Card>
           </TabsContent>
