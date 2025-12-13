@@ -11,7 +11,7 @@ import {
   SidebarTrigger,
   SidebarFooter
 } from '@/components/ui/sidebar';
-import { Home, Settings, Package, Users, LogOut } from 'lucide-react';
+import { Home, Settings, Package, BookUser, LogOut } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useUser } from '@/firebase';
 import { useEffect } from 'react';
@@ -114,6 +114,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <Link href="/products">
                   <Package />
                   <span>Products</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/accounts'}
+                tooltip={{ children: 'Accounts' }}
+              >
+                <Link href="/accounts">
+                  <BookUser />
+                  <span>Accounts</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
