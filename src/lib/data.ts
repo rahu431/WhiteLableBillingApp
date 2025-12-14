@@ -1,8 +1,8 @@
 import type { Product } from '@/lib/types';
 import { Stethoscope, Syringe, Pill, Microscope, ClipboardList, Smile, Coffee } from 'lucide-react';
-import { PlaceHolderImages } from './placeholder-images';
+import { placeholderImages } from './placeholder-images.json';
 
-const getImage = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || 'https://placehold.co/400x300';
+const getImage = (id: string) => placeholderImages.find(img => img.id === id)?.imageUrl || 'https://placehold.co/400x300';
 
 export const products: Product[] = [
   { id: '1', name: 'Consultation', price: 50, icon: Stethoscope, imageUrl: getImage('consultation') },

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useInvoice } from '@/hooks/use-invoice';
 import { products as initialProducts } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { placeholderImages } from '@/lib/placeholder-images.json';
 import { useState } from 'react';
 import {
   Dialog,
@@ -27,7 +27,7 @@ export default function ProductGrid() {
   const [products] = useState<Product[]>(initialProducts);
 
   const getImageHint = (url: string) => {
-    return PlaceHolderImages.find(img => img.imageUrl === url)?.imageHint || 'product image';
+    return placeholderImages.find(img => img.imageUrl === url)?.imageHint || 'product image';
   }
 
   const handleCardClick = (product: Product) => {
