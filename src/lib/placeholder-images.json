@@ -39,14 +39,38 @@
     {
       "id": "general-check-up",
       "description": "An image for a general check-up.",
-      "imageUrl": "https://images.unsplash.com/photo-1666887359800-60e37f543dbd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxnZW5lcmFsJTIwY2hlY2t1cHxlbnwwfHx8fDE3NjU2NTI0MzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1666887359800-60e37f543dbd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxnZW5lcmFsJTIwY2hlY2t1cHxlbnwwfHx8fDE3NjU2NTI0MzR8MA&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "general checkup"
     },
     {
       "id": "filling",
       "description": "An image for a dental filling.",
-      "imageUrl": "https://images.unsplash.com/photo-1631596577204-53ad0d6e6978?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxkZW50YWwlMjBmaWxsaW5nfGVufDB8fHx8MTc2NTY1MjQzNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1631596577204-53ad0d6e6978?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxkZW50YWwlMjBmaWxsaW5nfGVufDB8fHx8MTc2NTY1MjQzNHww&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "dental filling"
+    },
+    {
+      "id": "espresso",
+      "description": "An image of an espresso.",
+      "imageUrl": "https://images.unsplash.com/photo-1572442388855-458a554ba2ab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxlc3ByZXNzb3xlbnwwfHx8fDE3NjgyNTg3MDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "espresso shot"
+    },
+    {
+      "id": "latte",
+      "description": "An image of a latte.",
+      "imageUrl": "https://images.unsplash.com/photo-1563822552404-b95239b98fee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsYXR0ZXxlbnwwfHx8fDE3NjgyNTg3MzV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "latte art"
+    },
+    {
+      "id": "cappuccino",
+      "description": "An image of a cappuccino.",
+      "imageUrl": "https://images.unsplash.com/photo-1572442388855-458a554ba2ab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYXBwdWNjaW5vfGVufDB8fHx8MTc2ODI1ODc1N3ww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "cappuccino cup"
+    },
+    {
+      "id": "americano",
+      "description": "An image of an americano.",
+      "imageUrl": "https://images.unsplash.com/photo-1593441829334-cf9a4a759bad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhbWVyaWNhbm98ZW58MHx8fHwxNzY4MjU4Nzc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "americano coffee"
     }
   ]
 }
