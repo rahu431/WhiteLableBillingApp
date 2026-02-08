@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useInvoice } from '@/hooks/use-invoice';
@@ -10,7 +9,7 @@ import { Trash2, ShoppingBag, Share2, Minus, Plus, Percent } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '../ui/input';
 import { useFirestore, useUser } from '@/firebase';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 
 interface InvoiceDetailsProps {
@@ -128,7 +127,18 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
       return;
     }
 
+    // New user-friendly invoice ID generation logic
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const customInvoiceId = `INV-${year}${month}${day}-${hours}${minutes}${seconds}`;
+
     const invoiceData = {
+      id: customInvoiceId,
       userId: user.uid,
       items: items.map(item => ({
           id: item.id,
@@ -147,9 +157,10 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
     };
     
     try {
-      const invoicesCollection = collection(firestore, 'invoices');
-      await addDoc(invoicesCollection, invoiceData);
-      toast({ title: "Success!", description: "Invoice generated and saved." });
+      const invoiceDocRef = doc(firestore, 'invoices', customInvoiceId);
+      await setDoc(invoiceDocRef, invoiceData);
+
+      toast({ title: "Success!", description: `Invoice ${customInvoiceId} generated and saved.` });
       clearInvoice();
       if (onInvoiceGenerated) onInvoiceGenerated();
     } catch (e: any) {
