@@ -40,6 +40,10 @@
         "id": { "type": "string", "description": "The user-friendly unique identifier for the invoice." },
         "tokenId": { "type": "number", "description": "A daily-resetting sequential token number for the invoice." },
         "userId": { "type": "string", "description": "The ID of the user who created the invoice." },
+        "customerName": { "type": "string", "description": "The name of the customer." },
+        "customerEmail": { "type": "string", "format": "email", "description": "The email of the customer." },
+        "customerPhone": { "type": "string", "description": "The phone number of the customer." },
+        "notes": { "type": "string", "description": "Additional notes for the invoice." },
         "items": {
           "type": "array",
           "items": {

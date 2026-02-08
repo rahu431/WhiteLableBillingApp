@@ -37,6 +37,7 @@ interface Invoice {
     createdAt: Timestamp;
     total: number;
     items: any[];
+    customerName?: string;
 }
 
 export default function AccountManagement() {
@@ -103,6 +104,7 @@ export default function AccountManagement() {
           <TableHeader>
             <TableRow>
               <TableHead>Token</TableHead>
+              <TableHead>Customer</TableHead>
               <TableHead>Invoice ID</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Status</TableHead>
@@ -118,6 +120,7 @@ export default function AccountManagement() {
               [...Array(5)].map((_, i) => (
                 <TableRow key={i}>
                   <TableCell><Skeleton className="h-4 w-10" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                   <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
@@ -130,6 +133,7 @@ export default function AccountManagement() {
               sortedInvoices.map((invoice) => (
                 <TableRow key={invoice.id}>
                   <TableCell className="font-semibold">{invoice.tokenId}</TableCell>
+                  <TableCell className="font-medium">{invoice.customerName || 'N/A'}</TableCell>
                   <TableCell className="font-medium truncate" style={{ maxWidth: 150 }}>{invoice.id}</TableCell>
                   <TableCell>{formatTimestamp(invoice.createdAt)}</TableCell>
                   <TableCell>
@@ -156,7 +160,7 @@ export default function AccountManagement() {
               ))
             ) : (
                 <TableRow>
-                    <TableCell colSpan={7} className="text-center h-24">
+                    <TableCell colSpan={8} className="text-center h-24">
                         No invoices found.
                     </TableCell>
                 </TableRow>

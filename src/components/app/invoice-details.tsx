@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useInvoice } from '@/hooks/use-invoice';
 import { useSettings } from '@/context/settings-context';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Input } from '../ui/input';
 import { useFirestore, useUser } from '@/firebase';
 import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 
 interface InvoiceDetailsProps {
@@ -38,6 +42,12 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
   const { toast } = useToast();
   const firestore = useFirestore();
   const { user } = useUser();
+
+  const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [notes, setNotes] = useState('');
 
   const getInvoiceAsText = () => {
     const itemsText = items.map(item => {
@@ -110,15 +120,7 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
     }
   };
   
-  const handleGenerateInvoice = async () => {
-    if (!firestore || !user) {
-       toast({
-        title: "Error",
-        description: "You must be logged in to generate an invoice.",
-        variant: "destructive",
-      });
-      return;
-    }
+  const handleGenerateClick = () => {
     if (items.length === 0) {
       toast({
         title: "Cannot Generate Empty Invoice",
@@ -127,7 +129,19 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
       });
       return;
     }
-
+    setIsGenerateDialogOpen(true);
+  };
+  
+  const handleConfirmGenerateInvoice = async () => {
+    if (!firestore || !user) {
+       toast({
+        title: "Error",
+        description: "You must be logged in to generate an invoice.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       // To avoid a composite index, we query all of the user's invoices
       // and filter for today's invoices on the client.
@@ -164,6 +178,10 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
         id: customInvoiceId,
         tokenId: dailyTokenId,
         userId: user.uid,
+        customerName: customerName.trim(),
+        customerEmail: customerEmail.trim(),
+        customerPhone: customerPhone.trim(),
+        notes: notes.trim(),
         items: items.map(item => ({
             id: item.id,
             name: item.name,
@@ -184,7 +202,15 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
       await setDoc(invoiceDocRef, invoiceData);
 
       toast({ title: "Success!", description: `Invoice ${customInvoiceId} generated and saved.` });
+      
+      // Clear cart and customer details
       clearInvoice();
+      setCustomerName('');
+      setCustomerEmail('');
+      setCustomerPhone('');
+      setNotes('');
+      setIsGenerateDialogOpen(false);
+      
       if (onInvoiceGenerated) onInvoiceGenerated();
     } catch (e: any) {
       console.error("Error generating invoice:", e);
@@ -314,12 +340,75 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
           </Button>
           <Button 
             className="bg-accent text-accent-foreground hover:bg-accent/90 text-base font-bold"
-            onClick={handleGenerateInvoice}
+            onClick={handleGenerateClick}
           >
             Generate Invoice
           </Button>
         </div>
       </div>
+      
+      <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Customer Details (Optional)</DialogTitle>
+            <DialogDescription>
+              Add customer information and any notes for this invoice.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="customer-name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="customer-name"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="customer-email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="customer-email"
+                type="email"
+                value={customerEmail}
+                onChange={(e) => setCustomerEmail(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="customer-phone" className="text-right">
+                Phone
+              </Label>
+              <Input
+                id="customer-phone"
+                type="tel"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="notes" className="text-right">
+                Notes
+              </Label>
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsGenerateDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleConfirmGenerateInvoice}>Confirm & Generate</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
