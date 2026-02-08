@@ -39,17 +39,42 @@ export default function SettingsPage() {
         firestore ? doc(firestore, 'google_sheet_settings', SETTINGS_DOC_ID) : null,
         [firestore]
     );
-    const { data: sheetSettings, isLoading: isLoadingSettings, error: sheetSettingsError } = useDoc(settingsDocRef);
+    const { data: settingsData, isLoading: isLoadingSettings, error: settingsError } = useDoc(settingsDocRef);
     
     useEffect(() => {
-        if (sheetSettings) {
-            setSpreadsheetUrl(sheetSettings.spreadsheetUrl || '');
-            setCredentials(sheetSettings.credentials || '');
+        if (settingsData) {
+            setSpreadsheetUrl(settingsData.spreadsheetUrl || '');
+            setCredentials(settingsData.credentials || '');
+            setCurrency(settingsData.currency || 'USD');
+            setTaxRate(String(settingsData.taxRate || '10'));
+            setPackagingCharge(String(settingsData.packagingCharge || '0'));
+            setServiceCharge(String(settingsData.serviceCharge || '0'));
+            setDiscount(String(settingsData.discount || '0'));
         }
-    }, [sheetSettings]);
+    }, [settingsData]);
 
 
     const handleEcommerceSave = () => {
+        if (!user || !settingsDocRef) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'You must be logged in to save settings.',
+            });
+            return;
+        }
+
+        const newSettings = {
+            currency: currency,
+            taxRate: parseFloat(taxRate) || 0,
+            packagingCharge: parseFloat(packagingCharge) || 0,
+            serviceCharge: parseFloat(serviceCharge) || 0,
+            discount: parseFloat(discount) || 0,
+            lastUpdated: new Date().toISOString(),
+        };
+
+        setDocumentNonBlocking(settingsDocRef, newSettings, { merge: true });
+
         toast({
             title: "Settings Saved",
             description: "Your new e-commerce settings have been saved.",
@@ -97,14 +122,14 @@ export default function SettingsPage() {
             );
         }
 
-        if (sheetSettingsError) {
+        if (settingsError) {
             return (
                  <Alert variant="destructive">
                     <Terminal className="h-4 w-4" />
                     <AlertTitle>Error Loading Settings</AlertTitle>
                     <AlertDescription>
                         <p>There was a problem fetching your Google Sheets settings. Please check your Firestore security rules or network connection.</p>
-                        <pre className="mt-2 text-xs bg-destructive-foreground/10 p-2 rounded-md overflow-auto">{sheetSettingsError.message}</pre>
+                        <pre className="mt-2 text-xs bg-destructive-foreground/10 p-2 rounded-md overflow-auto">{settingsError.message}</pre>
                     </AlertDescription>
                 </Alert>
             )

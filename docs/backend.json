@@ -4,11 +4,11 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "GoogleSheetSetting",
       "type": "object",
-      "description": "Stores the Google Sheets settings for the application.",
+      "description": "Stores the application settings for integrations and e-commerce.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Google Sheet setting."
+          "description": "Unique identifier for the setting."
         },
         "spreadsheetUrl": {
           "type": "string",
@@ -23,12 +23,30 @@
           "type": "string",
           "description": "The timestamp of the last update to these settings.",
           "format": "date-time"
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency symbol for invoices, e.g., USD."
+        },
+        "taxRate": {
+          "type": "number",
+          "description": "The tax rate in percentage, e.g., 10 for 10%."
+        },
+        "packagingCharge": {
+          "type": "number",
+          "description": "A flat packaging charge added to each invoice."
+        },
+        "serviceCharge": {
+          "type": "number",
+          "description": "A flat service or handling charge added to each invoice."
+        },
+        "discount": {
+          "type": "number",
+          "description": "A flat discount amount applied to the entire invoice."
         }
       },
       "required": [
-        "id",
-        "spreadsheetUrl",
-        "credentials"
+        "id"
       ]
     },
     "Invoice": {
@@ -39,6 +57,10 @@
         "id": {
           "type": "string",
           "description": "The user-friendly unique identifier for the invoice."
+        },
+        "tokenId": {
+          "type": "number",
+          "description": "A daily-resetting sequential token number for the invoice."
         },
         "userId": {
           "type": "string",
@@ -70,7 +92,7 @@
           "description": "Timestamp when the invoice was created."
         }
       },
-      "required": ["id", "userId", "items", "total", "createdAt"]
+      "required": ["id", "tokenId", "userId", "items", "total", "createdAt"]
     }
   },
   "auth": {
@@ -115,4 +137,3 @@
     "reasoning": "Given the application's requirement to manage Google Sheet settings and user management via Firebase Authentication, the following Firestore structure is recommended:\n\n1.  **/google_sheet_settings/{settingId}**: This collection will store the Google Sheet settings. Authorization Independence is achieved because no subcollections exist and no parent document attributes are relied upon. Security rules can directly validate the properties of the `GoogleSheetSetting` document based on user roles (if implemented) or other criteria.\n\nThis structure supports required QAPs:\n\n*   Secure `list` operations: As all documents in `/google_sheet_settings` share the same security requirements, listing operations can be secured effectively. No filtering based on document content is required in the rules.\n\n2.  The use of dedicated collections and simple document structures facilitates clear and robust security rules, adhering to the principles of Authorization Independence, DBAC (database-based access control), and QAPs (rules are not filters)."
   }
 }
-    

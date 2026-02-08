@@ -26,13 +26,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, FileDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency } from '@/lib/utils';
+import { useSettings } from '@/context/settings-context';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, where, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
 
 interface Invoice {
     id: string;
+    tokenId: number;
     createdAt: Timestamp;
     total: number;
     items: any[];
@@ -41,6 +42,7 @@ interface Invoice {
 export default function AccountManagement() {
   const firestore = useFirestore();
   const { user } = useUser();
+  const { formatCurrency } = useSettings();
 
   const invoicesQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -99,6 +101,7 @@ export default function AccountManagement() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Token</TableHead>
               <TableHead>Invoice ID</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Status</TableHead>
@@ -113,6 +116,7 @@ export default function AccountManagement() {
             {isLoading ? (
               [...Array(5)].map((_, i) => (
                 <TableRow key={i}>
+                  <TableCell><Skeleton className="h-4 w-10" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                   <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
@@ -124,6 +128,7 @@ export default function AccountManagement() {
             ) : sortedInvoices && sortedInvoices.length > 0 ? (
               sortedInvoices.map((invoice) => (
                 <TableRow key={invoice.id}>
+                  <TableCell className="font-semibold">{invoice.tokenId}</TableCell>
                   <TableCell className="font-medium truncate" style={{ maxWidth: 150 }}>{invoice.id}</TableCell>
                   <TableCell>{formatTimestamp(invoice.createdAt)}</TableCell>
                   <TableCell>
@@ -150,7 +155,7 @@ export default function AccountManagement() {
               ))
             ) : (
                 <TableRow>
-                    <TableCell colSpan={6} className="text-center h-24">
+                    <TableCell colSpan={7} className="text-center h-24">
                         No invoices found.
                     </TableCell>
                 </TableRow>

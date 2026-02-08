@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency } from '@/lib/utils';
+import { useSettings } from '@/context/settings-context';
 import { useMemo, useState } from 'react';
 import { Input } from '../ui/input';
 import {
@@ -53,6 +53,7 @@ export default function ProductManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+  const { formatCurrency } = useSettings();
   
   const filteredProducts = useMemo(() => {
     if (!searchTerm) return products;

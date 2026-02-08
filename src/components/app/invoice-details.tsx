@@ -1,7 +1,7 @@
 'use client';
 
 import { useInvoice } from '@/hooks/use-invoice';
-import { formatCurrency } from '@/lib/utils';
+import { useSettings } from '@/context/settings-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -9,7 +9,7 @@ import { Trash2, ShoppingBag, Share2, Minus, Plus, Percent } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '../ui/input';
 import { useFirestore, useUser } from '@/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 
 
 interface InvoiceDetailsProps {
@@ -34,6 +34,7 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
     isDiscountInputVisible,
     clearInvoice 
   } = useInvoice();
+  const { formatCurrency } = useSettings();
   const { toast } = useToast();
   const firestore = useFirestore();
   const { user } = useUser();
@@ -127,36 +128,52 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
       return;
     }
 
-    // New user-friendly invoice ID generation logic
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    const customInvoiceId = `INV-${year}${month}${day}-${hours}${minutes}${seconds}`;
-
-    const invoiceData = {
-      id: customInvoiceId,
-      userId: user.uid,
-      items: items.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          discount: item.discount
-      })),
-      subtotal,
-      tax,
-      packagingCharge,
-      serviceCharge,
-      totalDiscount,
-      total,
-      createdAt: serverTimestamp(),
-    };
-    
     try {
+      // Get start of today in user's timezone
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+
+      // Create a query to count today's invoices for the current user
+      const invoicesRef = collection(firestore, 'invoices');
+      const q = query(
+        invoicesRef,
+        where('userId', '==', user.uid),
+        where('createdAt', '>=', Timestamp.fromDate(startOfToday))
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const dailyTokenId = querySnapshot.size + 1;
+
+      // New user-friendly invoice ID generation logic
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const customInvoiceId = `INV-${year}${month}${day}-${hours}${minutes}${seconds}`;
+
+      const invoiceData = {
+        id: customInvoiceId,
+        tokenId: dailyTokenId,
+        userId: user.uid,
+        items: items.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            discount: item.discount
+        })),
+        subtotal,
+        tax,
+        packagingCharge,
+        serviceCharge,
+        totalDiscount,
+        total,
+        createdAt: serverTimestamp(),
+      };
+    
       const invoiceDocRef = doc(firestore, 'invoices', customInvoiceId);
       await setDoc(invoiceDocRef, invoiceData);
 
@@ -164,6 +181,7 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
       clearInvoice();
       if (onInvoiceGenerated) onInvoiceGenerated();
     } catch (e: any) {
+      console.error("Error generating invoice:", e);
        toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",

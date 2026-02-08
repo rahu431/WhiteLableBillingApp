@@ -7,12 +7,13 @@ import { Button } from '@/components/ui/button';
 import ProductGrid from '@/components/app/product-grid';
 import InvoiceDetails from '@/components/app/invoice-details';
 import { useInvoice } from '@/hooks/use-invoice';
-import { formatCurrency } from '@/lib/utils';
+import { useSettings } from '@/context/settings-context';
 import { ShoppingCart } from 'lucide-react';
 
 export default function MobileLayout() {
   const [isSheetOpen, setSheetOpen] = useState(false);
   const { items, total } = useInvoice();
+  const { formatCurrency } = useSettings();
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
 
   const closeSheet = () => setSheetOpen(false);
@@ -49,5 +50,3 @@ export default function MobileLayout() {
     </div>
   );
 }
-
-    

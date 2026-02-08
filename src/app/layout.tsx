@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { FirebaseClientProvider } from '@/firebase';
+import { SettingsProvider } from '@/context/settings-context';
 
 export const metadata: Metadata = {
   title: 'Care Billing App',
@@ -23,9 +24,11 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <FirebaseClientProvider>
-          <SidebarProvider>
-            {children}
-          </SidebarProvider>
+          <SettingsProvider>
+            <SidebarProvider>
+              {children}
+            </SidebarProvider>
+          </SettingsProvider>
         </FirebaseClientProvider>
         <Toaster />
       </body>

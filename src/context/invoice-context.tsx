@@ -3,7 +3,7 @@
 
 import React, { createContext, useState, useMemo, useCallback } from 'react';
 import type { InvoiceItem, Product } from '@/lib/types';
-import { TAX_RATE, DISCOUNT_AMOUNT, PACKAGING_CHARGE, SERVICE_CHARGE } from '@/lib/constants';
+import { useSettings } from './settings-context';
 
 interface InvoiceContextType {
   items: InvoiceItem[];
@@ -28,6 +28,7 @@ export const InvoiceContext = createContext<InvoiceContextType | undefined>(unde
 export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<InvoiceItem[]>([]);
   const [visibleDiscountInputs, setVisibleDiscountInputs] = useState<Set<string>>(new Set());
+  const { settings } = useSettings();
 
   const addItem = useCallback((product: Product, quantity = 1) => {
     setItems((prevItems) => {
@@ -107,15 +108,17 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   
   const totalDiscount = useMemo(() => {
     const itemDiscounts = items.reduce((acc, item) => acc + (item.discount || 0) * item.quantity, 0);
-    return itemDiscounts + DISCOUNT_AMOUNT;
-  }, [items]);
+    const flatDiscount = settings?.discount || 0;
+    return itemDiscounts + flatDiscount;
+  }, [items, settings]);
 
   const tax = useMemo(() => {
-    return (subtotal - totalDiscount) * TAX_RATE;
-  }, [subtotal, totalDiscount]);
+    const taxRate = (settings?.taxRate || 0) / 100;
+    return (subtotal - totalDiscount) * taxRate;
+  }, [subtotal, totalDiscount, settings]);
   
-  const packagingCharge = PACKAGING_CHARGE;
-  const serviceCharge = SERVICE_CHARGE;
+  const packagingCharge = settings?.packagingCharge || 0;
+  const serviceCharge = settings?.serviceCharge || 0;
 
   const total = useMemo(() => {
     const calculatedTotal = subtotal + tax + packagingCharge + serviceCharge - totalDiscount;
