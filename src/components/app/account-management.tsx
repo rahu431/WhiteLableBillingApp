@@ -322,7 +322,9 @@ export default function AccountManagement() {
                       </div>
                   </div>
                   <DialogFooter>
-                      <Button onClick={() => setIsExportDialogOpen(false)} variant="outline">Cancel</Button>
+                      <DialogClose asChild>
+                        <Button variant="outline">Cancel</Button>
+                      </DialogClose>
                       <Button onClick={() => handleExport('custom')}>Export</Button>
                   </DialogFooter>
               </DialogContent>
