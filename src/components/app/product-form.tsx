@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select"
 import { DialogFooter } from '@/components/ui/dialog';
 import type { Product } from '@/lib/types';
-import { productIcons } from '@/lib/data';
+import { appIcons } from '@/lib/data';
 import { useEffect } from 'react';
 
 const productSchema = z.object({
@@ -39,7 +39,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
     defaultValues: {
       name: product?.name || '',
       price: product?.price || 0,
-      icon: productIcons.find(p => p.icon === product?.icon)?.name || '',
+      icon: appIcons.find(p => p.icon === product?.icon)?.name || '',
       imageUrl: product?.imageUrl || ''
     }
   });
@@ -48,7 +48,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
     reset({
         name: product?.name || '',
         price: product?.price || 0,
-        icon: productIcons.find(p => p.icon === product?.icon)?.name || '',
+        icon: appIcons.find(p => p.icon === product?.icon)?.name || '',
         imageUrl: product?.imageUrl || '',
     });
   }, [product, reset]);
@@ -88,7 +88,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
                 <SelectValue placeholder="Select an icon" />
               </SelectTrigger>
               <SelectContent>
-                {productIcons.map((iconProduct) => (
+                {appIcons.map((iconProduct) => (
                   <SelectItem key={iconProduct.id} value={iconProduct.name}>
                     <div className="flex items-center gap-2">
                       <iconProduct.icon className="w-4 h-4" />

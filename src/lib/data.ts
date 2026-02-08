@@ -2,7 +2,7 @@ import { Stethoscope, Syringe, Pill, Microscope, ClipboardList, Smile, Coffee } 
 import type { ComponentType } from 'react';
 
 // This is for the form dropdown
-export const productIcons: {
+export const appIcons: {
   id: string;
   name: string;
   icon: ComponentType<{ className?: string }>;
@@ -18,6 +18,6 @@ export const productIcons: {
 
 
 export const getIconComponent = (iconName: string): ComponentType<{ className?: string }> => {
-    const iconInfo = productIcons.find(i => i.name === iconName);
+    const iconInfo = appIcons.find(i => i.name === iconName);
     return iconInfo ? iconInfo.icon : Stethoscope; // Default to Stethoscope
 };
