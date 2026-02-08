@@ -1,4 +1,3 @@
-
 'use client';
 
 import AppLayout from '@/components/app/app-layout';
@@ -30,7 +29,7 @@ export default function SettingsPage() {
     const [packagingCharge, setPackagingCharge] = useState('0');
     const [serviceCharge, setServiceCharge] = useState('0');
     const [discount, setDiscount] = useState('0');
-    const [timezone, setTimezone] = useState('UTC');
+    const [timezone, setTimezone] = useState('');
 
     // Google Sheets state
     const [spreadsheetUrl, setSpreadsheetUrl] = useState('');
@@ -43,6 +42,9 @@ export default function SettingsPage() {
     const { data: settingsData, isLoading: isLoadingSettings, error: settingsError } = useDoc(settingsDocRef);
     
     useEffect(() => {
+        // This effect runs only on the client, so window.Intl is safe.
+        const defaultTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
         if (settingsData) {
             setSpreadsheetUrl(settingsData.spreadsheetUrl || '');
             setCredentials(settingsData.credentials || '');
@@ -51,9 +53,12 @@ export default function SettingsPage() {
             setPackagingCharge(String(settingsData.packagingCharge || '0'));
             setServiceCharge(String(settingsData.serviceCharge || '0'));
             setDiscount(String(settingsData.discount || '0'));
-            setTimezone(settingsData.timezone || 'UTC');
+            setTimezone(settingsData.timezone || defaultTimezone);
+        } else if (!isLoadingSettings) {
+            // If not loading and there are no settings in the DB, use the browser's timezone.
+            setTimezone(defaultTimezone);
         }
-    }, [settingsData]);
+    }, [settingsData, isLoadingSettings]);
 
 
     const handleEcommerceSave = () => {

@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useContext, ReactNode, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo, useCallback, useState, useEffect } from 'react';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 
@@ -39,6 +39,13 @@ export const SettingsContext = createContext<SettingsContextType>({
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const firestore = useFirestore();
+    const [defaultTimezone, setDefaultTimezone] = useState('UTC');
+
+    useEffect(() => {
+        // This effect runs only on the client, so window.Intl is safe.
+        setDefaultTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+    }, []);
+
 
     const settingsDocRef = useMemoFirebase(() =>
         firestore ? doc(firestore, 'settings', SETTINGS_DOC_ID) : null,
@@ -52,8 +59,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         packagingCharge: settingsData?.packagingCharge ?? defaultSettings.packagingCharge,
         serviceCharge: settingsData?.serviceCharge ?? defaultSettings.serviceCharge,
         discount: settingsData?.discount ?? defaultSettings.discount,
-        timezone: settingsData?.timezone || defaultSettings.timezone,
-    }), [settingsData]);
+        timezone: settingsData?.timezone || defaultTimezone,
+    }), [settingsData, defaultTimezone]);
 
     const formatCurrency = useCallback((amount: number) => {
         // Use 'en-IN' locale for INR to ensure correct symbol and formatting.
