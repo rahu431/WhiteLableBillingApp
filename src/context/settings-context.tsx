@@ -56,7 +56,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }), [settingsData]);
 
     const formatCurrency = useCallback((amount: number) => {
-        return new Intl.NumberFormat("en-US", {
+        // Use 'en-IN' locale for INR to ensure correct symbol and formatting.
+        // Default to 'en-US' for other currencies.
+        const locale = settings.currency === 'INR' ? 'en-IN' : 'en-US';
+        return new Intl.NumberFormat(locale, {
             style: "currency",
             currency: settings.currency,
         }).format(amount);
