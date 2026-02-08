@@ -67,7 +67,7 @@ export default function ExpenseManagement() {
 
   const sortedExpenses = useMemo(() => {
     if (!expenses) return [];
-    return [...expenses].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+    return [...expenses].sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
   }, [expenses]);
   
   const formatTimestamp = (timestamp: Timestamp | null | undefined) => {
