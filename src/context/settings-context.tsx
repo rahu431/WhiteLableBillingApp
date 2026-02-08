@@ -13,6 +13,7 @@ interface Settings {
     packagingCharge: number;
     serviceCharge: number;
     discount: number;
+    timezone: string;
 }
 
 interface SettingsContextType {
@@ -27,6 +28,7 @@ const defaultSettings: Settings = {
     packagingCharge: 0,
     serviceCharge: 0,
     discount: 0,
+    timezone: 'UTC',
 };
 
 export const SettingsContext = createContext<SettingsContextType>({
@@ -50,6 +52,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         packagingCharge: settingsData?.packagingCharge ?? defaultSettings.packagingCharge,
         serviceCharge: settingsData?.serviceCharge ?? defaultSettings.serviceCharge,
         discount: settingsData?.discount ?? defaultSettings.discount,
+        timezone: settingsData?.timezone || defaultSettings.timezone,
     }), [settingsData]);
 
     const formatCurrency = useCallback((amount: number) => {

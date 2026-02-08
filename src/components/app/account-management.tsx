@@ -42,7 +42,7 @@ interface Invoice {
 export default function AccountManagement() {
   const firestore = useFirestore();
   const { user } = useUser();
-  const { formatCurrency } = useSettings();
+  const { formatCurrency, settings } = useSettings();
 
   const invoicesQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -73,6 +73,7 @@ export default function AccountManagement() {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: settings?.timezone || 'UTC',
     });
   };
 

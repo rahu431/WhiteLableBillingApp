@@ -30,6 +30,7 @@ export default function SettingsPage() {
     const [packagingCharge, setPackagingCharge] = useState('0');
     const [serviceCharge, setServiceCharge] = useState('0');
     const [discount, setDiscount] = useState('0');
+    const [timezone, setTimezone] = useState('UTC');
 
     // Google Sheets state
     const [spreadsheetUrl, setSpreadsheetUrl] = useState('');
@@ -50,6 +51,7 @@ export default function SettingsPage() {
             setPackagingCharge(String(settingsData.packagingCharge || '0'));
             setServiceCharge(String(settingsData.serviceCharge || '0'));
             setDiscount(String(settingsData.discount || '0'));
+            setTimezone(settingsData.timezone || 'UTC');
         }
     }, [settingsData]);
 
@@ -71,6 +73,7 @@ export default function SettingsPage() {
             packagingCharge: parseFloat(packagingCharge) || 0,
             serviceCharge: parseFloat(serviceCharge) || 0,
             discount: parseFloat(discount) || 0,
+            timezone: timezone,
             lastUpdated: new Date().toISOString(),
         };
 
@@ -203,6 +206,10 @@ export default function SettingsPage() {
                     <div className="space-y-2">
                       <Label htmlFor="discount">Flat Discount</Label>
                       <Input id="discount" type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="e.g. 10" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="timezone">Timezone</Label>
+                        <Input id="timezone" value={timezone} onChange={(e) => setTimezone(e.target.value)} placeholder="e.g. America/New_York" />
                     </div>
                   </div>
                    <div className="flex items-center space-x-2 pt-4">

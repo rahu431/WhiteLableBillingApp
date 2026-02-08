@@ -19,10 +19,12 @@ import { Label } from '@/components/ui/label';
 import type { Product } from '@/lib/types';
 import { Plus } from 'lucide-react';
 import { useProducts } from '@/context/product-context';
+import { useSettings } from '@/context/settings-context';
 
 export default function ProductGrid() {
   const { addItem } = useInvoice();
   const { products } = useProducts();
+  const { formatCurrency } = useSettings();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
 
@@ -74,7 +76,7 @@ export default function ProductGrid() {
               <CardTitle className="text-base font-semibold">{product.name}</CardTitle>
             </CardHeader>
             <CardContent className="flex items-center justify-between p-4 pt-0">
-              <p className="text-lg font-bold text-foreground">${product.price.toFixed(2)}</p>
+              <p className="text-lg font-bold text-foreground">{formatCurrency(product.price)}</p>
                <Button size="icon" variant="outline" aria-label={`Add ${product.name} to invoice`}>
                 <Plus className="w-5 h-5" />
               </Button>

@@ -27,7 +27,8 @@
         "taxRate": { "type": "number", "description": "The tax rate in percentage, e.g., 10 for 10%." },
         "packagingCharge": { "type": "number", "description": "A flat packaging charge added to each invoice." },
         "serviceCharge": { "type": "number", "description": "A flat service or handling charge added to each invoice." },
-        "discount": { "type": "number", "description": "A flat discount amount applied to the entire invoice." }
+        "discount": { "type": "number", "description": "A flat discount amount applied to the entire invoice." },
+        "timezone": { "type": "string", "description": "The IANA timezone name for date formatting, e.g., 'America/New_York'." }
       },
       "required": ["id"]
     },
