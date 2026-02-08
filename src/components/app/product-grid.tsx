@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { useInvoice } from '@/hooks/use-invoice';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { placeholderImages } from '@/lib/placeholder-images.json';
@@ -20,6 +19,7 @@ import type { Product } from '@/lib/types';
 import { Plus } from 'lucide-react';
 import { useProducts } from '@/context/product-context';
 import { useSettings } from '@/context/settings-context';
+import ProductImage from '@/components/app/product-image';
 
 export default function ProductGrid() {
   const { addItem } = useInvoice();
@@ -75,7 +75,7 @@ export default function ProductGrid() {
                   onClick={() => handleCardClick(product)}
                 >
                   <div className="relative overflow-hidden">
-                    <Image 
+                    <ProductImage 
                       src={product.imageUrl} 
                       alt={product.name} 
                       width={400} 

@@ -1,7 +1,6 @@
 'use client';
 
 import type { Product, ProductData } from '@/lib/types';
-import Image from 'next/image';
 import {
   Table,
   TableBody,
@@ -52,6 +51,7 @@ import Papa from 'papaparse';
 import { collection, doc, writeBatch } from 'firebase/firestore';
 import { appIcons } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import ProductImage from './product-image';
 
 
 export default function ProductManagement() {
@@ -219,7 +219,7 @@ export default function ProductManagement() {
       return filteredProducts.map((product) => (
         <TableRow key={product.id}>
           <TableCell className="hidden sm:table-cell">
-            <Image
+            <ProductImage
               alt={product.name}
               className="aspect-square rounded-md object-cover"
               height="64"

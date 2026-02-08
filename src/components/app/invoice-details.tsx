@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useInvoice } from '@/hooks/use-invoice';
 import { useSettings } from '@/context/settings-context';
@@ -49,6 +49,7 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [notes, setNotes] = useState('');
+  const [qrCodeError, setQrCodeError] = useState(false);
 
   const upiUrl = settings?.upiId 
     ? `upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(settings.appName)}&am=${total.toFixed(2)}&cu=${settings.currency}` 
@@ -57,6 +58,10 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
   const qrCodeUrl = upiUrl 
     ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}` 
     : '';
+
+  useEffect(() => {
+    setQrCodeError(false);
+  }, [qrCodeUrl]);
 
   const getInvoiceAsText = () => {
     const itemsText = items.map(item => {
@@ -422,13 +427,20 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
                 <>
                   <h3 className="text-lg font-semibold mb-2">Scan to Pay</h3>
                   <div className="bg-white p-2 rounded-md shadow-md">
-                    <Image 
-                      src={qrCodeUrl}
-                      alt="UPI QR Code"
-                      width={200}
-                      height={200}
-                      data-ai-hint="qr code"
-                    />
+                    {qrCodeError ? (
+                      <div className="w-[200px] h-[200px] flex items-center justify-center text-center text-muted-foreground p-2">
+                        QR Code could not be loaded. Please check your connection.
+                      </div>
+                    ) : (
+                      <Image 
+                        src={qrCodeUrl}
+                        alt="UPI QR Code"
+                        width={200}
+                        height={200}
+                        data-ai-hint="qr code"
+                        onError={() => setQrCodeError(true)}
+                      />
+                    )}
                   </div>
                   <p className="mt-4 text-sm text-muted-foreground">UPI ID: <span className="font-mono text-foreground">{settings.upiId}</span></p>
                   <p className="font-bold text-xl mt-1">{formatCurrency(total)}</p>

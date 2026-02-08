@@ -15,7 +15,7 @@ import {
 import { Home, Settings, Package, BookUser, LogOut, User } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useUser } from '@/firebase';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   DropdownMenu,
@@ -36,6 +36,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const { settings } = useSettings();
+  const [logoLoadError, setLogoLoadError] = useState(false);
 
   useEffect(() => {
     // If auth is not loading and there's no user, redirect to login.
@@ -43,6 +44,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
+
+  useEffect(() => {
+    setLogoLoadError(false);
+  }, [settings?.logoUrl]);
 
   const handleLogout = () => {
     if (auth) {
@@ -91,8 +96,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
             <SidebarTrigger className="md:hidden" />
-            {settings?.logoUrl && (
-              <Image src={settings.logoUrl} alt={`${settings.appName} logo`} width={24} height={24} className="rounded-sm" />
+            {settings?.logoUrl && !logoLoadError && (
+              <Image 
+                src={settings.logoUrl} 
+                alt={`${settings.appName} logo`} 
+                width={24} 
+                height={24} 
+                className="rounded-sm"
+                onError={() => setLogoLoadError(true)}
+              />
             )}
             <h1 className="text-xl font-bold">{settings?.appName || 'Care Billing'}</h1>
           </div>
