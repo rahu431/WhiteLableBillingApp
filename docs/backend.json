@@ -118,19 +118,17 @@
   "firestore": {
     "structure": [
       {
-        "path": "/google_sheet_settings/{settingId}",
+        "path": "/products/{productId}",
         "definition": {
-          "entityName": "GoogleSheetSetting",
-          "schema": {
-            "$ref": "#/backend/entities/GoogleSheetSetting"
-          },
-          "description": "Stores Google Sheet settings. All documents in this collection have the same security requirements.",
-          "params": [
-            {
-              "name": "settingId",
-              "description": "Unique identifier for the Google Sheet setting document."
-            }
-          ]
+            "entityName": "Product",
+            "schema": { "$ref": "#/backend/entities/Product" },
+            "description": "Stores individual product documents.",
+            "params": [
+                {
+                    "name": "productId",
+                    "description": "Unique identifier for the product document."
+                }
+            ]
         }
       },
       {
@@ -148,20 +146,22 @@
         }
       },
       {
-        "path": "/products/{productId}",
+        "path": "/google_sheet_settings/{settingId}",
         "definition": {
-            "entityName": "Product",
-            "schema": { "$ref": "#/backend/entities/Product" },
-            "description": "Stores individual product documents.",
-            "params": [
-                {
-                    "name": "productId",
-                    "description": "Unique identifier for the product document."
-                }
-            ]
+          "entityName": "GoogleSheetSetting",
+          "schema": {
+            "$ref": "#/backend/entities/GoogleSheetSetting"
+          },
+          "description": "Stores Google Sheet settings. All documents in this collection have the same security requirements.",
+          "params": [
+            {
+              "name": "settingId",
+              "description": "Unique identifier for the Google Sheet setting document."
+            }
+          ]
         }
       }
     ],
-    "reasoning": "Given the application's requirement to manage Google Sheet settings, user invoices, and a product catalog via Firebase Authentication, the following Firestore structure is recommended:\n\n1.  **/google_sheet_settings/{settingId}**: Stores global application settings. Access should be restricted to admin users in production.\n\n2.  **/invoices/{invoiceId}**: Stores individual invoice documents. Security rules ensure users can only access their own invoices.\n\n3.  **/products/{productId}**: This collection will store the product catalog. For this prototype, any authenticated user can manage products, but this should be restricted in a production environment.\n\nThis structure uses dedicated collections for different data types, which facilitates clear and robust security rules and adheres to the principles of Authorization Independence and database-as-a-service security best practices."
+    "reasoning": "This project follows the best practice of using separate, top-level collections for each data model. This ensures that the data for products, invoices, and settings are managed independently for better security and scalability.\n\n1.  **/products/{productId}**: Stores the product catalog. In this prototype, any authenticated user can manage products. For production, this access should be restricted.\n\n2.  **/invoices/{invoiceId}**: Stores individual invoice documents. Security rules ensure users can only access their own invoices.\n\n3.  **/google_sheet_settings/{settingId}**: Stores global application settings. Access should be restricted to admin users in production.\n\nThis structure facilitates clear and robust security rules and adheres to the principles of Authorization Independence and database-as-a-service security best practices."
   }
 }
