@@ -6,6 +6,7 @@ export interface Product {
   price: number;
   icon: React.ComponentType<{ className?: string }>;
   imageUrl: string;
+  status: 'active' | 'archived';
 }
 
 export interface InvoiceItem extends Product {

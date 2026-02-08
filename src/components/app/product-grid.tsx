@@ -2,10 +2,9 @@
 
 import Image from 'next/image';
 import { useInvoice } from '@/hooks/use-invoice';
-import { products as initialProducts } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { placeholderImages } from '@/lib/placeholder-images.json';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -19,12 +18,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { Product } from '@/lib/types';
 import { Plus } from 'lucide-react';
+import { useProducts } from '@/context/product-context';
 
 export default function ProductGrid() {
   const { addItem } = useInvoice();
+  const { products } = useProducts();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [products] = useState<Product[]>(initialProducts);
+
+  const activeProducts = useMemo(() => products.filter(p => p.status === 'active'), [products]);
 
   const getImageHint = (url: string) => {
     return placeholderImages.find(img => img.imageUrl === url)?.imageHint || 'product image';
@@ -49,7 +51,7 @@ export default function ProductGrid() {
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {products.map((product) => (
+        {activeProducts.map((product) => (
           <Card 
             key={product.id} 
             className="flex flex-col overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 group cursor-pointer"

@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSettings } from '@/context/settings-context';
 import { useMemo, useState } from 'react';
 import { Input } from '../ui/input';
@@ -31,9 +31,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -47,9 +44,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import ProductForm from './product-form';
+import { useProducts } from '@/context/product-context';
 
 export default function ProductManagement() {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const { products, setProducts } = useProducts();
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
@@ -60,7 +58,7 @@ export default function ProductManagement() {
     return products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
   }, [searchTerm, products]);
 
-  const handleSaveProduct = (productData: Omit<Product, 'id' | 'icon'> & {icon: string}) => {
+  const handleSaveProduct = (productData: Omit<Product, 'id' | 'icon' | 'status'> & {icon: string}) => {
     if (editingProduct) {
       // Update existing product
       setProducts(products.map(p => p.id === editingProduct.id ? { ...editingProduct, ...productData, icon: initialProducts.find(ip => ip.name === productData.icon)?.icon || p.icon } : p));
@@ -69,6 +67,7 @@ export default function ProductManagement() {
       const newProduct: Product = {
         id: (products.length + 1).toString(),
         ...productData,
+        status: 'active',
         icon: initialProducts.find(ip => ip.name === productData.icon)?.icon || initialProducts[0].icon,
       };
       setProducts([...products, newProduct]);
@@ -82,8 +81,16 @@ export default function ProductManagement() {
     setIsDialogOpen(true);
   };
   
-  const handleDelete = (productId: string) => {
-    setProducts(products.filter(p => p.id !== productId));
+  const handleArchive = (productId: string) => {
+    setProducts(products.map(p => 
+      p.id === productId ? { ...p, status: 'archived' } : p
+    ));
+  };
+
+  const handleUnarchive = (productId: string) => {
+    setProducts(products.map(p => 
+      p.id === productId ? { ...p, status: 'active' } : p
+    ));
   };
 
   const openNewProductDialog = () => {
@@ -148,7 +155,9 @@ export default function ProductManagement() {
                   </TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">Active</Badge>
+                    <Badge variant={product.status === 'active' ? 'outline' : 'secondary'}>
+                      {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
+                    </Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     {formatCurrency(product.price)}
@@ -166,21 +175,25 @@ export default function ProductManagement() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => handleEdit(product)}>Edit</DropdownMenuItem>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem>
-                          </AlertDialogTrigger>
+                          {product.status === 'active' ? (
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>Archive</DropdownMenuItem>
+                            </AlertDialogTrigger>
+                          ) : (
+                            <DropdownMenuItem onClick={() => handleUnarchive(product.id)}>Unarchive</DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                        <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogTitle>Are you sure you want to archive this product?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the product.
+                            Archived products will not be available for selection when creating new invoices.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(product.id)}>Continue</AlertDialogAction>
+                          <AlertDialogAction onClick={() => handleArchive(product.id)}>Archive Product</AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
