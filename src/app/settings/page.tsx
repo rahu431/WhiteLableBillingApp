@@ -35,6 +35,10 @@ export default function SettingsPage() {
     const [spreadsheetUrl, setSpreadsheetUrl] = useState('');
     const [credentials, setCredentials] = useState('');
 
+    // White Label state
+    const [appName, setAppName] = useState('Care Billing');
+    const [logoUrl, setLogoUrl] = useState('');
+
     const settingsDocRef = useMemoFirebase(() => 
         firestore ? doc(firestore, 'settings', SETTINGS_DOC_ID) : null,
         [firestore]
@@ -54,6 +58,8 @@ export default function SettingsPage() {
             setServiceCharge(String(settingsData.serviceCharge || '0'));
             setDiscount(String(settingsData.discount || '0'));
             setTimezone(settingsData.timezone || defaultTimezone);
+            setAppName(settingsData.appName || 'Care Billing');
+            setLogoUrl(settingsData.logoUrl || '');
         } else if (!isLoadingSettings) {
             // If not loading and there are no settings in the DB, use the browser's timezone.
             setTimezone(defaultTimezone);
@@ -114,6 +120,31 @@ export default function SettingsPage() {
             description: "Your Google Sheets settings have been updated.",
         });
     }
+
+    const handleWhiteLabelSave = () => {
+        if (!user || !settingsDocRef) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'You must be logged in to save settings.',
+            });
+            return;
+        }
+
+        const newSettings = {
+            id: SETTINGS_DOC_ID,
+            appName: appName,
+            logoUrl: logoUrl,
+            lastUpdated: new Date().toISOString(),
+        };
+
+        setDocumentNonBlocking(settingsDocRef, newSettings, { merge: true });
+
+        toast({
+            title: "Settings Saved",
+            description: "Your white label settings have been updated.",
+        });
+    };
 
     const renderGoogleSheetsContent = () => {
         if (isLoadingSettings) {
@@ -233,23 +264,34 @@ export default function SettingsPage() {
               <CardHeader>
                 <CardTitle>White Label</CardTitle>
                 <CardDescription>
-                  Customize the appearance of the application. More features coming soon.
+                  Customize the appearance of the application.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="app-name">App Name</Label>
-                    <Input id="app-name" defaultValue="Care Billing" />
+                    <Input 
+                        id="app-name" 
+                        value={appName} 
+                        onChange={(e) => setAppName(e.target.value)} 
+                    />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="logo">Logo</Label>
-                    <Input id="logo" type="file" />
+                    <Label htmlFor="logo">Logo URL</Label>
+                    <Input 
+                        id="logo" 
+                        type="url" 
+                        placeholder="https://example.com/logo.png" 
+                        value={logoUrl}
+                        onChange={(e) => setLogoUrl(e.target.value)}
+                    />
+                     <p className="text-sm text-muted-foreground">Enter the URL of your logo image. Leave blank if not needed.</p>
                   </div>
                 </form>
               </CardContent>
               <CardFooter className="border-t px-6 py-4">
-                <Button>Save</Button>
+                <Button onClick={handleWhiteLabelSave}>Save</Button>
               </CardFooter>
             </Card>
           </TabsContent>

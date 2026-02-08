@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Sidebar,
   SidebarContent,
@@ -27,12 +28,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { signOut } from 'firebase/auth';
+import { useSettings } from '@/context/settings-context';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const { settings } = useSettings();
 
   useEffect(() => {
     // If auth is not loading and there's no user, redirect to login.
@@ -88,7 +91,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
             <SidebarTrigger className="md:hidden" />
-            <h1 className="text-xl font-bold">Care Billing</h1>
+            {settings?.logoUrl && (
+              <Image src={settings.logoUrl} alt={`${settings.appName} logo`} width={24} height={24} className="rounded-sm" />
+            )}
+            <h1 className="text-xl font-bold">{settings?.appName || 'Care Billing'}</h1>
           </div>
         </SidebarHeader>
         <SidebarContent>
