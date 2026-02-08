@@ -30,7 +30,8 @@
         "packagingCharge": { "type": "number", "description": "A flat packaging charge added to each invoice." },
         "serviceCharge": { "type": "number", "description": "A flat service or handling charge added to each invoice." },
         "discount": { "type": "number", "description": "A flat discount amount applied to the entire invoice." },
-        "timezone": { "type": "string", "description": "The IANA timezone name for date formatting, e.g., 'America/New_York'." }
+        "timezone": { "type": "string", "description": "The IANA timezone name for date formatting, e.g., 'America/New_York'." },
+        "upiId": { "type": "string", "description": "The UPI ID for receiving payments." }
       },
       "required": ["id"]
     },

@@ -30,6 +30,7 @@ export default function SettingsPage() {
     const [serviceCharge, setServiceCharge] = useState('0');
     const [discount, setDiscount] = useState('0');
     const [timezone, setTimezone] = useState('');
+    const [upiId, setUpiId] = useState('');
 
     // Google Sheets state
     const [spreadsheetUrl, setSpreadsheetUrl] = useState('');
@@ -60,6 +61,7 @@ export default function SettingsPage() {
             setTimezone(settingsData.timezone || defaultTimezone);
             setAppName(settingsData.appName || 'Care Billing');
             setLogoUrl(settingsData.logoUrl || '');
+            setUpiId(settingsData.upiId || '');
         } else if (!isLoadingSettings) {
             // If not loading and there are no settings in the DB, use the browser's timezone.
             setTimezone(defaultTimezone);
@@ -85,6 +87,7 @@ export default function SettingsPage() {
             serviceCharge: parseFloat(serviceCharge) || 0,
             discount: parseFloat(discount) || 0,
             timezone: timezone,
+            upiId: upiId,
             lastUpdated: new Date().toISOString(),
         };
 
@@ -246,6 +249,10 @@ export default function SettingsPage() {
                     <div className="space-y-2">
                         <Label htmlFor="timezone">Timezone</Label>
                         <Input id="timezone" value={timezone} onChange={(e) => setTimezone(e.target.value)} placeholder="e.g. America/New_York" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="upiId">UPI ID</Label>
+                        <Input id="upiId" value={upiId} onChange={(e) => setUpiId(e.target.value)} placeholder="your-upi-id@bank" />
                     </div>
                   </div>
                    <div className="flex items-center space-x-2 pt-4">

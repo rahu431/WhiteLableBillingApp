@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useInvoice } from '@/hooks/use-invoice';
 import { useSettings } from '@/context/settings-context';
 import { Button } from '@/components/ui/button';
@@ -38,7 +39,7 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
     isDiscountInputVisible,
     clearInvoice 
   } = useInvoice();
-  const { formatCurrency } = useSettings();
+  const { settings, formatCurrency } = useSettings();
   const { toast } = useToast();
   const firestore = useFirestore();
   const { user } = useUser();
@@ -48,6 +49,14 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [notes, setNotes] = useState('');
+
+  const upiUrl = settings?.upiId 
+    ? `upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(settings.appName)}&am=${total.toFixed(2)}&cu=${settings.currency}` 
+    : '';
+
+  const qrCodeUrl = upiUrl 
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}` 
+    : '';
 
   const getInvoiceAsText = () => {
     const itemsText = items.map(item => {
@@ -348,59 +357,87 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
       </div>
       
       <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[800px]">
           <DialogHeader>
-            <DialogTitle>Customer Details (Optional)</DialogTitle>
+            <DialogTitle>Generate Invoice</DialogTitle>
             <DialogDescription>
-              Add customer information and any notes for this invoice.
+              Add customer details and finalize the invoice. Scan the QR code to pay.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="customer-name" className="text-right">
-                Name
-              </Label>
-              <Input
-                id="customer-name"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                className="col-span-3"
-              />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="customer-name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="customer-name"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Customer Name"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="customer-email" className="text-right">
+                  Email
+                </Label>
+                <Input
+                  id="customer-email"
+                  type="email"
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  className="col-span-3"
+                  placeholder="customer@example.com"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="customer-phone" className="text-right">
+                  Phone
+                </Label>
+                <Input
+                  id="customer-phone"
+                  type="tel"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Customer Phone"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="notes" className="text-right">
+                  Notes
+                </Label>
+                <Textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Any special notes for this invoice."
+                />
+              </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="customer-email" className="text-right">
-                Email
-              </Label>
-              <Input
-                id="customer-email"
-                type="email"
-                value={customerEmail}
-                onChange={(e) => setCustomerEmail(e.target.value)}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="customer-phone" className="text-right">
-                Phone
-              </Label>
-              <Input
-                id="customer-phone"
-                type="tel"
-                value={customerPhone}
-                onChange={(e) => setCustomerPhone(e.target.value)}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="notes" className="text-right">
-                Notes
-              </Label>
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="col-span-3"
-              />
+             <div className="flex flex-col items-center justify-center bg-muted/50 p-4 rounded-lg">
+              {settings?.upiId ? (
+                <>
+                  <h3 className="text-lg font-semibold mb-2">Scan to Pay</h3>
+                  <div className="bg-white p-2 rounded-md shadow-md">
+                    <Image 
+                      src={qrCodeUrl}
+                      alt="UPI QR Code"
+                      width={200}
+                      height={200}
+                      data-ai-hint="qr code"
+                    />
+                  </div>
+                  <p className="mt-4 text-sm text-muted-foreground">UPI ID: <span className="font-mono text-foreground">{settings.upiId}</span></p>
+                  <p className="font-bold text-xl mt-1">{formatCurrency(total)}</p>
+                </>
+              ) : (
+                <div className="text-center text-muted-foreground">
+                  <p>Set your UPI ID in the E-commerce settings to enable QR code payments.</p>
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>

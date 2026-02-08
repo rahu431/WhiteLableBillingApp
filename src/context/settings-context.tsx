@@ -16,6 +16,7 @@ interface Settings {
     timezone: string;
     appName: string;
     logoUrl: string;
+    upiId: string;
 }
 
 interface SettingsContextType {
@@ -33,6 +34,7 @@ const defaultSettings: Settings = {
     timezone: 'UTC',
     appName: 'Care Billing',
     logoUrl: '',
+    upiId: '',
 };
 
 export const SettingsContext = createContext<SettingsContextType>({
@@ -66,6 +68,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         timezone: settingsData?.timezone || defaultTimezone,
         appName: settingsData?.appName || defaultSettings.appName,
         logoUrl: settingsData?.logoUrl || defaultSettings.logoUrl,
+        upiId: settingsData?.upiId || defaultSettings.upiId,
     }), [settingsData, defaultTimezone]);
 
     const formatCurrency = useCallback((amount: number) => {
