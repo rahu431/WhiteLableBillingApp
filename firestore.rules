@@ -68,7 +68,7 @@ service cloud.firestore {
       allow get: if isSignedIn();
       allow list: if false;
       allow create: if isSignedIn() && request.resource.data.id == settingId;
-      allow update: if isSignedIn() && resource != null && request.resource.data.id == resource.data.id;
+      allow update: if isSignedIn() && resource != null;
       allow delete: if isSignedIn() && resource != null;
     }
 
