@@ -4,14 +4,14 @@ import { useState, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, doc, query, where, serverTimestamp, Timestamp } from 'firebase/firestore';
-import { MoreHorizontal, PlusCircle, Trash2 } from 'lucide-react';
+import { collection, doc, query, where, Timestamp } from 'firebase/firestore';
+import { MoreHorizontal, PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { useCollection, useFirestore, useUser, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { useSettings } from '@/context/settings-context';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +19,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+
 
 interface Expense {
   id: string;
@@ -33,6 +38,7 @@ const expenseSchema = z.object({
   name: z.string().min(1, 'Expense name is required'),
   amount: z.coerce.number().positive('Amount must be greater than zero'),
   category: z.string().min(1, 'Category is required'),
+  createdAt: z.date({ required_error: "An expense date is required."}),
 });
 
 type ExpenseFormData = z.infer<typeof expenseSchema>;
@@ -83,10 +89,10 @@ export default function ExpenseManagement() {
   const handleOpenDialog = (expense?: Expense) => {
     if (expense) {
       setEditingExpense(expense);
-      reset({ name: expense.name, amount: expense.amount, category: expense.category });
+      reset({ name: expense.name, amount: expense.amount, category: expense.category, createdAt: expense.createdAt.toDate() });
     } else {
       setEditingExpense(null);
-      reset({ name: '', amount: 0, category: '' });
+      reset({ name: '', amount: 0, category: '', createdAt: new Date() });
     }
     setIsDialogOpen(true);
   };
@@ -98,19 +104,23 @@ export default function ExpenseManagement() {
 
   const onSubmit = (data: ExpenseFormData) => {
     if (!user || !firestore) return;
+    
+    const expenseData = {
+        name: data.name,
+        amount: data.amount,
+        category: data.category,
+        createdAt: Timestamp.fromDate(data.createdAt)
+    };
 
     if (editingExpense) {
-      // Update existing expense
       const expenseDocRef = doc(firestore, 'expenses', editingExpense.id);
-      updateDocumentNonBlocking(expenseDocRef, data);
+      updateDocumentNonBlocking(expenseDocRef, expenseData);
       toast({ title: 'Expense Updated', description: `${data.name} has been updated.` });
     } else {
-      // Add new expense
       const collectionRef = collection(firestore, 'expenses');
       addDocumentNonBlocking(collectionRef, {
-        ...data,
+        ...expenseData,
         userId: user.uid,
-        createdAt: serverTimestamp(),
       });
       toast({ title: 'Expense Added', description: `${data.name} has been added.` });
     }
@@ -255,6 +265,38 @@ export default function ExpenseManagement() {
                 />
                 {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
               </div>
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="createdAt">Date</Label>
+                <Controller
+                    name="createdAt"
+                    control={control}
+                    render={({ field }) => (
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-full justify-start text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                    )}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
+                    )}
+                />
+                {errors.createdAt && <p className="text-sm text-destructive">{errors.createdAt.message}</p>}
             </div>
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={handleCloseDialog}>Cancel</Button>
