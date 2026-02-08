@@ -332,7 +332,7 @@ export default function ProductManagement() {
   }
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
+    <>
       <Card>
         <CardHeader>
           <div className="flex justify-between items-start md:items-center flex-col md:flex-row gap-4">
@@ -406,18 +406,20 @@ export default function ProductManagement() {
         </CardContent>
       </Card>
 
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
-          <DialogDescription>
-            {editingProduct ? 'Update the details of your product.' : 'Fill in the details for the new product.'}
-          </DialogDescription>
-        </DialogHeader>
-        <ProductForm 
-          product={editingProduct} 
-          onSave={handleSaveProduct} 
-        />
-      </DialogContent>
-    </Dialog>
+      <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+            <DialogDescription>
+              {editingProduct ? 'Update the details of your product.' : 'Fill in the details for the new product.'}
+            </DialogDescription>
+          </DialogHeader>
+          <ProductForm 
+            product={editingProduct} 
+            onSave={handleSaveProduct} 
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
