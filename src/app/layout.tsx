@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -9,6 +10,10 @@ import { ProductProvider } from '@/context/product-context';
 export const metadata: Metadata = {
   title: 'Care Billing App',
   description: 'A modern billing application for care providers.',
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({
