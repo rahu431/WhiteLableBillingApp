@@ -129,20 +129,26 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
     }
 
     try {
-      // Get start of today in user's timezone
+      // To avoid a composite index, we query all of the user's invoices
+      // and filter for today's invoices on the client.
+      const invoicesRef = collection(firestore, 'invoices');
+      const userInvoicesQuery = query(invoicesRef, where('userId', '==', user.uid));
+      const userInvoicesSnapshot = await getDocs(userInvoicesQuery);
+
       const startOfToday = new Date();
       startOfToday.setHours(0, 0, 0, 0);
 
-      // Create a query to count today's invoices for the current user
-      const invoicesRef = collection(firestore, 'invoices');
-      const q = query(
-        invoicesRef,
-        where('userId', '==', user.uid),
-        where('createdAt', '>=', Timestamp.fromDate(startOfToday))
-      );
+      let todaysInvoicesCount = 0;
+      userInvoicesSnapshot.forEach(doc => {
+        const docData = doc.data();
+        if (docData.createdAt && docData.createdAt.toDate) { // Check if createdAt is a Timestamp
+            if (docData.createdAt.toDate() >= startOfToday) {
+                todaysInvoicesCount++;
+            }
+        }
+      });
       
-      const querySnapshot = await getDocs(q);
-      const dailyTokenId = querySnapshot.size + 1;
+      const dailyTokenId = todaysInvoicesCount + 1;
 
       // New user-friendly invoice ID generation logic
       const now = new Date();
