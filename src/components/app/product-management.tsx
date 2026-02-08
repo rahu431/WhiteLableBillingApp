@@ -45,17 +45,25 @@ import ProductForm from './product-form';
 import { useProducts } from '@/context/product-context';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '../ui/skeleton';
-import { useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import Papa from 'papaparse';
-import { collection, doc, writeBatch } from 'firebase/firestore';
+import { collection, doc, writeBatch, type Timestamp } from 'firebase/firestore';
 import { appIcons } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import ProductImage from './product-image';
 
+interface SalesInvoice {
+    createdAt: Timestamp;
+    items: {
+        id: string;
+        quantity: number;
+    }[];
+}
+
 
 export default function ProductManagement() {
-  const { products, addProduct, updateProduct, isLoading } = useProducts();
+  const { products, addProduct, updateProduct, isLoading: isLoadingProducts } = useProducts();
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
@@ -64,6 +72,34 @@ export default function ProductManagement() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const firestore = useFirestore();
   const { toast } = useToast();
+
+  const invoicesCollectionRef = useMemoFirebase(() =>
+    firestore ? collection(firestore, 'invoices') : null,
+    [firestore]
+  );
+  const { data: invoices, isLoading: isLoadingInvoices } = useCollection<SalesInvoice>(invoicesCollectionRef);
+  
+  const isLoading = isLoadingProducts || isLoadingInvoices;
+
+  const dailySales = useMemo(() => {
+    if (!invoices) return new Map<string, number>();
+
+    const salesMap = new Map<string, number>();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    invoices.forEach(invoice => {
+        const invoiceDate = invoice.createdAt?.toDate();
+        if (invoiceDate && invoiceDate >= today) {
+            invoice.items.forEach(item => {
+                salesMap.set(item.id, (salesMap.get(item.id) || 0) + item.quantity);
+            });
+        }
+    });
+
+    return salesMap;
+  }, [invoices]);
+
 
   const filteredProducts = useMemo(() => {
     const productsByStatus = products.filter(p => p.status === activeTab);
@@ -237,7 +273,7 @@ export default function ProductManagement() {
           <TableCell className="hidden md:table-cell">
             {formatCurrency(product.price)}
           </TableCell>
-          <TableCell className="hidden md:table-cell">25</TableCell>
+          <TableCell className="hidden md:table-cell">{dailySales.get(product.id) || 0}</TableCell>
           <TableCell>
             <AlertDialog>
               <DropdownMenu>
