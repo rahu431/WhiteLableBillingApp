@@ -39,6 +39,7 @@ export default function SettingsPage() {
     // White Label state
     const [appName, setAppName] = useState('Care Billing');
     const [logoUrl, setLogoUrl] = useState('');
+    const [address, setAddress] = useState('');
 
     const settingsDocRef = useMemoFirebase(() => 
         firestore ? doc(firestore, 'settings', SETTINGS_DOC_ID) : null,
@@ -62,6 +63,7 @@ export default function SettingsPage() {
             setAppName(settingsData.appName || 'Care Billing');
             setLogoUrl(settingsData.logoUrl || '');
             setUpiId(settingsData.upiId || '');
+            setAddress(settingsData.address || '');
         } else if (!isLoadingSettings) {
             // If not loading and there are no settings in the DB, use the browser's timezone.
             setTimezone(defaultTimezone);
@@ -138,6 +140,7 @@ export default function SettingsPage() {
             id: SETTINGS_DOC_ID,
             appName: appName,
             logoUrl: logoUrl,
+            address: address,
             lastUpdated: new Date().toISOString(),
         };
 
@@ -294,6 +297,17 @@ export default function SettingsPage() {
                         onChange={(e) => setLogoUrl(e.target.value)}
                     />
                      <p className="text-sm text-muted-foreground">Enter the URL of your logo image. Leave blank if not needed.</p>
+                  </div>
+                   <div className="space-y-2">
+                    <Label htmlFor="address">Business Address</Label>
+                    <Textarea
+                        id="address"
+                        placeholder="123 Main St, Anytown, USA"
+                        className="min-h-[100px]"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                    />
+                    <p className="text-sm text-muted-foreground">Your business address, to be displayed on invoices.</p>
                   </div>
                 </form>
               </CardContent>

@@ -38,6 +38,9 @@ export default function PrintableInvoice({ invoice }: { invoice: Invoice }) {
                     )}
                     <h1 className="text-3xl font-bold text-gray-800">{settings?.appName || 'Invoice'}</h1>
                     <p className="text-gray-500">Invoice #{invoice.tokenId}</p>
+                    {settings?.address && (
+                        <p className="text-gray-500 mt-2 whitespace-pre-line">{settings.address}</p>
+                    )}
                 </div>
                 <div className="text-right">
                     <p className="font-semibold text-gray-800">Invoice ID: {invoice.id}</p>

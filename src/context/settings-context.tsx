@@ -17,6 +17,7 @@ interface Settings {
     appName: string;
     logoUrl: string;
     upiId: string;
+    address: string;
 }
 
 interface SettingsContextType {
@@ -35,6 +36,7 @@ const defaultSettings: Settings = {
     appName: 'Care Billing',
     logoUrl: '',
     upiId: '',
+    address: '',
 };
 
 export const SettingsContext = createContext<SettingsContextType>({
@@ -45,7 +47,7 @@ export const SettingsContext = createContext<SettingsContextType>({
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const firestore = useFirestore();
-    const { user } = useUser();
+    const { user, isUserLoading } = useUser();
     const [defaultTimezone, setDefaultTimezone] = useState('UTC');
 
     useEffect(() => {
@@ -58,29 +60,36 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         (firestore && user) ? doc(firestore, 'settings', SETTINGS_DOC_ID) : null,
         [firestore, user]
     );
-    const { data: settingsData, isLoading } = useDoc<Settings>(settingsDocRef);
+    const { data: settingsData, isLoading: isLoadingSettings } = useDoc<Settings>(settingsDocRef);
+    
+    const isLoading = isUserLoading || isLoadingSettings;
 
-    const settings = useMemo(() => ({
-        currency: settingsData?.currency || defaultSettings.currency,
-        taxRate: settingsData?.taxRate ?? defaultSettings.taxRate,
-        packagingCharge: settingsData?.packagingCharge ?? defaultSettings.packagingCharge,
-        serviceCharge: settingsData?.serviceCharge ?? defaultSettings.serviceCharge,
-        discount: settingsData?.discount ?? defaultSettings.discount,
-        timezone: settingsData?.timezone || defaultTimezone,
-        appName: settingsData?.appName || defaultSettings.appName,
-        logoUrl: settingsData?.logoUrl || defaultSettings.logoUrl,
-        upiId: settingsData?.upiId || defaultSettings.upiId,
-    }), [settingsData, defaultTimezone]);
+    const settings = useMemo(() => {
+        if (!user) return null; // Don't provide settings if there's no user
+        return {
+            currency: settingsData?.currency || defaultSettings.currency,
+            taxRate: settingsData?.taxRate ?? defaultSettings.taxRate,
+            packagingCharge: settingsData?.packagingCharge ?? defaultSettings.packagingCharge,
+            serviceCharge: settingsData?.serviceCharge ?? defaultSettings.serviceCharge,
+            discount: settingsData?.discount ?? defaultSettings.discount,
+            timezone: settingsData?.timezone || defaultTimezone,
+            appName: settingsData?.appName || defaultSettings.appName,
+            logoUrl: settingsData?.logoUrl || defaultSettings.logoUrl,
+            upiId: settingsData?.upiId || defaultSettings.upiId,
+            address: settingsData?.address || defaultSettings.address,
+        }
+    }, [settingsData, defaultTimezone, user]);
 
     const formatCurrency = useCallback((amount: number) => {
+        const activeCurrency = settings?.currency || defaultSettings.currency;
         // Use 'en-IN' locale for INR to ensure correct symbol and formatting.
         // Default to 'en-US' for other currencies.
-        const locale = settings.currency === 'INR' ? 'en-IN' : 'en-US';
+        const locale = activeCurrency === 'INR' ? 'en-IN' : 'en-US';
         return new Intl.NumberFormat(locale, {
             style: "currency",
-            currency: settings.currency,
+            currency: activeCurrency,
         }).format(amount);
-    }, [settings.currency]);
+    }, [settings?.currency]);
     
     const value = { settings, isLoading, formatCurrency };
 
