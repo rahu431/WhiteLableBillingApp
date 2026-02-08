@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select"
 import { DialogFooter } from '@/components/ui/dialog';
 import type { Product } from '@/lib/types';
-import { products as productIcons } from '@/lib/data';
+import { productIcons } from '@/lib/data';
 import { useEffect } from 'react';
 
 const productSchema = z.object({

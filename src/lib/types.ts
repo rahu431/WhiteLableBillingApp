@@ -9,6 +9,15 @@ export interface Product {
   status: 'active' | 'archived';
 }
 
+export interface ProductData {
+  id: string;
+  name: string;
+  price: number;
+  icon: string;
+  imageUrl: string;
+  status: 'active' | 'archived';
+}
+
 export interface InvoiceItem extends Product {
   quantity: number;
   discount: number;

@@ -1,5 +1,19 @@
 {
   "entities": {
+    "Product": {
+      "title": "Product",
+      "type": "object",
+      "description": "Represents a product or service that can be sold.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the product." },
+        "name": { "type": "string", "description": "The name of the product." },
+        "price": { "type": "number", "description": "The price of the product." },
+        "icon": { "type": "string", "description": "The name of the lucide-react icon for the product." },
+        "imageUrl": { "type": "string", "format": "uri", "description": "URL of the product image." },
+        "status": { "type": "string", "enum": ["active", "archived"], "description": "The status of the product." }
+      },
+      "required": ["id", "name", "price", "icon", "imageUrl", "status"]
+    },
     "GoogleSheetSetting": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "GoogleSheetSetting",
@@ -132,8 +146,22 @@
                 }
             ]
         }
+      },
+      {
+        "path": "/products/{productId}",
+        "definition": {
+            "entityName": "Product",
+            "schema": { "$ref": "#/backend/entities/Product" },
+            "description": "Stores individual product documents.",
+            "params": [
+                {
+                    "name": "productId",
+                    "description": "Unique identifier for the product document."
+                }
+            ]
+        }
       }
     ],
-    "reasoning": "Given the application's requirement to manage Google Sheet settings and user management via Firebase Authentication, the following Firestore structure is recommended:\n\n1.  **/google_sheet_settings/{settingId}**: This collection will store the Google Sheet settings. Authorization Independence is achieved because no subcollections exist and no parent document attributes are relied upon. Security rules can directly validate the properties of the `GoogleSheetSetting` document based on user roles (if implemented) or other criteria.\n\nThis structure supports required QAPs:\n\n*   Secure `list` operations: As all documents in `/google_sheet_settings` share the same security requirements, listing operations can be secured effectively. No filtering based on document content is required in the rules.\n\n2.  The use of dedicated collections and simple document structures facilitates clear and robust security rules, adhering to the principles of Authorization Independence, DBAC (database-based access control), and QAPs (rules are not filters)."
+    "reasoning": "Given the application's requirement to manage Google Sheet settings, user invoices, and a product catalog via Firebase Authentication, the following Firestore structure is recommended:\n\n1.  **/google_sheet_settings/{settingId}**: Stores global application settings. Access should be restricted to admin users in production.\n\n2.  **/invoices/{invoiceId}**: Stores individual invoice documents. Security rules ensure users can only access their own invoices.\n\n3.  **/products/{productId}**: This collection will store the product catalog. For this prototype, any authenticated user can manage products, but this should be restricted in a production environment.\n\nThis structure uses dedicated collections for different data types, which facilitates clear and robust security rules and adheres to the principles of Authorization Independence and database-as-a-service security best practices."
   }
 }

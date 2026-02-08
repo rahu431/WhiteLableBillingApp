@@ -90,7 +90,24 @@ service cloud.firestore {
         allow read, update, delete: if isSignedIn() && isOwner(resource.data.userId);
         allow list: if isSignedIn() && request.query.where.userId == request.auth.uid;
     }
+
+    /**
+     * @description
+     * Rules for the products collection. Allows any authenticated user to manage products.
+     * For production, you might want to restrict write access to admin users.
+     * @path
+     * /products/{productId}
+     * @allow
+     * Any authenticated user can read all products.
+     * @allow
+     * An authenticated user can create, update, and soft-delete (archive) products.
+     * Hard deletes are disallowed to prevent accidental data loss.
+     */
+    match /products/{productId} {
+      allow read, list: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.id == productId;
+      allow update: if isSignedIn();
+      allow delete: if false; // Prevent hard deletes
+    }
   }
 }
-
-    
