@@ -10,9 +10,10 @@
         "price": { "type": "number", "description": "The price of the product." },
         "icon": { "type": "string", "description": "The name of the lucide-react icon for the product." },
         "imageUrl": { "type": "string", "format": "uri", "description": "URL of the product image." },
-        "status": { "type": "string", "enum": ["active", "archived"], "description": "The status of the product." }
+        "status": { "type": "string", "enum": ["active", "archived"], "description": "The status of the product." },
+        "category": { "type": "string", "description": "The category of the product." }
       },
-      "required": ["id", "name", "price", "icon", "imageUrl", "status"]
+      "required": ["id", "name", "price", "icon", "imageUrl", "status", "category"]
     },
     "AppSettings": {
       "title": "Application Settings",

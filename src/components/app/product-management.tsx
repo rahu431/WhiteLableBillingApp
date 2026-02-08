@@ -59,7 +59,10 @@ export default function ProductManagement() {
   const filteredProducts = useMemo(() => {
     const productsByStatus = products.filter(p => p.status === activeTab);
     if (!searchTerm) return productsByStatus;
-    return productsByStatus.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    return productsByStatus.filter(p => 
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.category.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   }, [searchTerm, products, activeTab]);
 
   const handleSaveProduct = (productData: Omit<ProductData, 'id' | 'status'>) => {
@@ -98,6 +101,7 @@ export default function ProductManagement() {
               <Skeleton className="h-16 w-16 rounded-md" />
             </TableCell>
             <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+            <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
             <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
             <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
             <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-12" /></TableCell>
@@ -119,6 +123,7 @@ export default function ProductManagement() {
             />
           </TableCell>
           <TableCell className="font-medium">{product.name}</TableCell>
+          <TableCell className="hidden md:table-cell">{product.category}</TableCell>
           <TableCell>
             <Badge variant={product.status === 'active' ? 'outline' : 'secondary'}>
               {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
@@ -169,7 +174,7 @@ export default function ProductManagement() {
 
     return (
       <TableRow>
-        <TableCell colSpan={6} className="h-24 text-center">
+        <TableCell colSpan={7} className="h-24 text-center">
           No {activeTab} products found. Add one to get started.
         </TableCell>
       </TableRow>
@@ -216,6 +221,7 @@ export default function ProductManagement() {
                   <span className="sr-only">Image</span>
                 </TableHead>
                 <TableHead>Name</TableHead>
+                <TableHead className="hidden md:table-cell">Category</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="hidden md:table-cell">Price</TableHead>
                 <TableHead className="hidden md:table-cell">

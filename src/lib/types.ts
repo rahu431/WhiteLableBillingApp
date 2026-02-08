@@ -7,6 +7,7 @@ export interface Product {
   icon: React.ComponentType<{ className?: string }>;
   imageUrl: string;
   status: 'active' | 'archived';
+  category: string;
 }
 
 export interface ProductData {
@@ -16,6 +17,7 @@ export interface ProductData {
   icon: string;
   imageUrl: string;
   status: 'active' | 'archived';
+  category: string;
 }
 
 export interface InvoiceItem extends Product {
