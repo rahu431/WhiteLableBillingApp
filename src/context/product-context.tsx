@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useMemo, useCallback, useEffect, useState } from 'react';
 import type { Product, ProductData } from '@/lib/types';
-import { useCollection, useFirestore, useMemoFirebase, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, setDocumentNonBlocking, updateDocumentNonBlocking, useUser } from '@/firebase';
 import { collection, doc, writeBatch } from 'firebase/firestore';
 import { getIconComponent } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
@@ -12,16 +12,16 @@ const initialProducts: Omit<ProductData, 'id' | 'status'>[] = [
     { name: 'Vietnamese Iced coffee (Small)', price: 70, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1551030173-17d642ae958a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxWaWV0bmFtZXNlJTIwSWNlZCUyMGNvZmZlZXxlbnwwfHx8fDE3NjkxNTAwNTl8MA&ixlib=rb-4.1.0&q=80&w=1080', category: 'Iced Brews' },
     { name: 'Vietnamese Iced coffee (Medium)', price: 80, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1551030173-17d642ae958a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxWaWV0bmFtZXNlJTIwSWNlZCUyMGNvZmZlZXxlbnwwfHx8fDE3NjkxNTAwNTl8MA&ixlib=rb-4.1.0&q=80&w=1080', category: 'Iced Brews' },
     { name: 'Vietnamese Iced coffee (Large)', price: 110, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1551030173-17d642ae958a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxWaWV0bmFtZXNlJTIwSWNlZCUyMGNvZmZlZXxlbnwwfHx8fDE3NjkxNTAwNTl8MA&ixlib=rb-4.1.0&q=80&w=1080', category: 'Iced Brews' },
-    { name: 'Iced Mocha (Small)', price: 70, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1584312528148-3c878b66a840?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxJY2VkJTIwTW9jaGF8ZW58MHx8fHwxNzY5MTUwMDk2fDA&ixlib=rb-4.1.0&q=80&w=1080', category: 'Iced Brews' },
+    { name: 'Iced Mocha (Small)', price: 70, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1584312528148-3c878b66a840?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxJY2VkJTIwTW9jaGF8ZW58MHx8fHwxNzY5MTUwMDk2fDA&ixlib-rb-4.1.0&q=80&w=1080', category: 'Iced Brews' },
     { name: 'Iced Mocha (Medium)', price: 80, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1584312528148-3c878b66a840?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxJY2VkJTIwTW9jaGF8ZW58MHx8fHwxNzY5MTUwMDk2fDA&ixlib-rb-4.1.0&q=80&w=1080', category: 'Iced Brews' },
     { name: 'Iced Mocha (Large)', price: 110, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1584312528148-3c878b66a840?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxJY2VkJTIwTW9jaGF8ZW58MHx8fHwxNzY5MTUwMDk2fDA&ixlib-rb-4.1.0&q=80&w=1080', category: 'Iced Brews' },
     { name: 'Cold Caramel (Small)', price: 70, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1572422319406-8b770f9e8020?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxDYXJhbWVsJTIwSWNlZCUyMENvZmZlZXxlbnwwfHx8fDE3NjkxNTAxMjR8MA&ixlib=rb-4.1.0&q=80&w=1080', category: 'Iced Brews' },
-    { name: 'Cold Caramel (Medium)', price: 80, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1572422319406-8b770f9e8020?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxDYXJhbWVsJTIwSWNlZCUyMENvZmZlZXxlbnwwfHx8fDE3NjkxNTAxMjR8MA&ixlib-rb-4.1.0&q=80&w=1080', category: 'Iced Brews' },
-    { name: 'Cold Caramel (Large)', price: 110, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1572422319406-8b770f9e8020?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxDYXJhbWVsJTIwSWNlZCUyMENvZmZlZXxlbnwwfHx8fDE3NjkxNTAxMjR8MA&ixlib-rb-4.1.0&q=80&w=1080', category: 'Iced Brews' },
+    { name: 'Cold Caramel (Medium)', price: 80, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1572422319406-8b770f9e8020?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxDYXJhbWVsJTIwSWNlZCUyMENvZmZlZXxlbnwwfHx8fDE3NjkxNTAxMjR8MA&ixlib=rb-4.1.0&q=80&w=1080', category: 'Iced Brews' },
+    { name: 'Cold Caramel (Large)', price: 110, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1572422319406-8b770f9e8020?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxDYXJhbWVsJTIwSWNlZCUyMENvZmZlZXxlbnwwfHx8fDE3NjkxNTAxMjR8MA&ixlib=rb-4.1.0&q=80&w=1080', category: 'Iced Brews' },
     { name: 'Iced Black Coffee', price: 40, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1517701559435-50a18a8aaa9a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxJY2VkJTIwQmxhY2slMjBDb2ZmZWV8ZW58MHx8fHwxNzY5MTUwMTUxfDA&ixlib-rb-4.1.0&q=80&w=1080', category: 'Iced Brews' },
     
     // Classics
-    { name: 'Filter Coffee', price: 35, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1623902327423-75a7b1b59dfe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxGaWx0ZXIlMjBDb2ZmZWV8ZW58MHx8fHwxNzY5MTUwMTc1fDA&ixlib-rb-4.1.0&q=80&w=1080', category: 'Classics' },
+    { name: 'Filter Coffee', price: 35, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1623902327423-75a7b1b59dfe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxGaWx0ZXIlMjBDb2ZmZWV8ZW58MHx8fHwxNzY5MTUwMTc1fDA&ixlib=rb-4.1.0&q=80&w=1080', category: 'Classics' },
     { name: 'Black Coffee', price: 30, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1593441829334-cf9a4a759bad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhbWVyaWNhbm98ZW58MHx8fHwxNzY4MjU4Nzc3fDA&ixlib.rb-4.1.0&q=80&w=1080', category: 'Classics' },
     { name: 'Bullet Coffee', price: 40, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1549922378-8456a640b490?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxCdWxsZXRwcm9vZiUyMENvZmZlZXxlbnwwfHx8fDE3NjkxNTAyMjN8MA&ixlib-rb-4.1.0&q=80&w=1080', category: 'Classics' },
     { name: 'Butter Bun', price: 50, icon: 'Coffee', imageUrl: 'https://images.unsplash.com/photo-1621817181839-85b5650e82f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxidXR0ZXIlMjBidW58ZW58MHx8fHwxNzY5MTUwMjQ4fDA&ixlib-rb-4.1.0&q=80&w=1080', category: 'Classics' },
@@ -43,18 +43,19 @@ const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const firestore = useFirestore();
+  const { user } = useUser();
   const { toast } = useToast();
   const [isSeeding, setIsSeeding] = useState(false);
 
   const productsCollectionRef = useMemoFirebase(() =>
-    firestore ? collection(firestore, 'products') : null,
-    [firestore]
+    (firestore && user) ? collection(firestore, 'products') : null,
+    [firestore, user]
   );
   
   const { data: productData, isLoading, error } = useCollection<ProductData>(productsCollectionRef);
 
   useEffect(() => {
-    if (firestore && !isLoading && productData && !isSeeding) {
+    if (firestore && user && !isLoading && productData && !isSeeding) {
         const seedDatabase = async () => {
             setIsSeeding(true);
             try {
@@ -113,7 +114,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         seedDatabase();
     }
-  }, [firestore, isLoading, productData, isSeeding, toast]);
+  }, [firestore, user, isLoading, productData, isSeeding, toast]);
 
   if (error) {
       console.error("Error fetching products:", error);
@@ -129,7 +130,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [productData]);
 
   const addProduct = useCallback((newProductData: Omit<ProductData, 'id' | 'status'>) => {
-    if (!firestore) return;
+    if (!firestore || !user) return;
     const newDocRef = doc(collection(firestore, 'products'));
     const product: ProductData = {
       ...newProductData,
@@ -141,18 +142,18 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         title: "Product Added",
         description: `${product.name} has been successfully added.`,
     });
-  }, [firestore, toast]);
+  }, [firestore, user, toast]);
 
 
   const updateProduct = useCallback((productId: string, dataToUpdate: Partial<ProductData>) => {
-    if (!firestore) return;
+    if (!firestore || !user) return;
     const productDocRef = doc(firestore, 'products', productId);
     updateDocumentNonBlocking(productDocRef, dataToUpdate);
      toast({
         title: "Product Updated",
         description: `The product has been successfully updated.`,
     });
-  }, [firestore, toast]);
+  }, [firestore, user, toast]);
 
   const value = { products, addProduct, updateProduct, isLoading };
 
