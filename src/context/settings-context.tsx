@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, ReactNode, useMemo, useCallback, useState, useEffect } from 'react';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 
 const SETTINGS_DOC_ID = 'global';
@@ -45,6 +45,7 @@ export const SettingsContext = createContext<SettingsContextType>({
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const firestore = useFirestore();
+    const { user } = useUser();
     const [defaultTimezone, setDefaultTimezone] = useState('UTC');
 
     useEffect(() => {
@@ -54,8 +55,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
 
     const settingsDocRef = useMemoFirebase(() =>
-        firestore ? doc(firestore, 'settings', SETTINGS_DOC_ID) : null,
-        [firestore]
+        (firestore && user) ? doc(firestore, 'settings', SETTINGS_DOC_ID) : null,
+        [firestore, user]
     );
     const { data: settingsData, isLoading } = useDoc<Settings>(settingsDocRef);
 
