@@ -5,7 +5,7 @@ import React, { createContext, useContext, ReactNode, useMemo, useCallback } fro
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 
-const SETTINGS_DOC_ID = 'global-sheet-settings';
+const SETTINGS_DOC_ID = 'global';
 
 interface Settings {
     currency: string;
@@ -39,7 +39,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const firestore = useFirestore();
 
     const settingsDocRef = useMemoFirebase(() =>
-        firestore ? doc(firestore, 'google_sheet_settings', SETTINGS_DOC_ID) : null,
+        firestore ? doc(firestore, 'settings', SETTINGS_DOC_ID) : null,
         [firestore]
     );
     const { data: settingsData, isLoading } = useDoc<Settings>(settingsDocRef);

@@ -17,7 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const SETTINGS_DOC_ID = 'global-sheet-settings';
+const SETTINGS_DOC_ID = 'global';
 
 export default function SettingsPage() {
     const { toast } = useToast();
@@ -36,7 +36,7 @@ export default function SettingsPage() {
     const [credentials, setCredentials] = useState('');
 
     const settingsDocRef = useMemoFirebase(() => 
-        firestore ? doc(firestore, 'google_sheet_settings', SETTINGS_DOC_ID) : null,
+        firestore ? doc(firestore, 'settings', SETTINGS_DOC_ID) : null,
         [firestore]
     );
     const { data: settingsData, isLoading: isLoadingSettings, error: settingsError } = useDoc(settingsDocRef);
@@ -65,6 +65,7 @@ export default function SettingsPage() {
         }
 
         const newSettings = {
+            id: SETTINGS_DOC_ID,
             currency: currency,
             taxRate: parseFloat(taxRate) || 0,
             packagingCharge: parseFloat(packagingCharge) || 0,
@@ -128,7 +129,7 @@ export default function SettingsPage() {
                     <Terminal className="h-4 w-4" />
                     <AlertTitle>Error Loading Settings</AlertTitle>
                     <AlertDescription>
-                        <p>There was a problem fetching your Google Sheets settings. Please check your Firestore security rules or network connection.</p>
+                        <p>There was a problem fetching your settings. Please check your Firestore security rules or network connection.</p>
                         <pre className="mt-2 text-xs bg-destructive-foreground/10 p-2 rounded-md overflow-auto">{settingsError.message}</pre>
                     </AlertDescription>
                 </Alert>

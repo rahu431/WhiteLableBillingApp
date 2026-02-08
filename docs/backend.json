@@ -14,72 +14,31 @@
       },
       "required": ["id", "name", "price", "icon", "imageUrl", "status"]
     },
-    "GoogleSheetSetting": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "GoogleSheetSetting",
+    "AppSettings": {
+      "title": "Application Settings",
       "type": "object",
-      "description": "Stores the application settings for integrations and e-commerce.",
+      "description": "Stores global application settings for integrations and e-commerce.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the setting."
-        },
-        "spreadsheetUrl": {
-          "type": "string",
-          "description": "The URL of the Google Sheet used for data storage.",
-          "format": "uri"
-        },
-        "credentials": {
-          "type": "string",
-          "description": "The credentials used to access the Google Sheet (e.g., JSON key)."
-        },
-        "lastUpdated": {
-          "type": "string",
-          "description": "The timestamp of the last update to these settings.",
-          "format": "date-time"
-        },
-        "currency": {
-          "type": "string",
-          "description": "The currency symbol for invoices, e.g., USD."
-        },
-        "taxRate": {
-          "type": "number",
-          "description": "The tax rate in percentage, e.g., 10 for 10%."
-        },
-        "packagingCharge": {
-          "type": "number",
-          "description": "A flat packaging charge added to each invoice."
-        },
-        "serviceCharge": {
-          "type": "number",
-          "description": "A flat service or handling charge added to each invoice."
-        },
-        "discount": {
-          "type": "number",
-          "description": "A flat discount amount applied to the entire invoice."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the settings document." },
+        "spreadsheetUrl": { "type": "string", "description": "The URL of the Google Sheet used for data storage.", "format": "uri" },
+        "credentials": { "type": "string", "description": "The credentials used to access the Google Sheet (e.g., JSON key)." },
+        "lastUpdated": { "type": "string", "description": "The timestamp of the last update to these settings.", "format": "date-time" },
+        "currency": { "type": "string", "description": "The currency symbol for invoices, e.g., USD." },
+        "taxRate": { "type": "number", "description": "The tax rate in percentage, e.g., 10 for 10%." },
+        "packagingCharge": { "type": "number", "description": "A flat packaging charge added to each invoice." },
+        "serviceCharge": { "type": "number", "description": "A flat service or handling charge added to each invoice." },
+        "discount": { "type": "number", "description": "A flat discount amount applied to the entire invoice." }
       },
-      "required": [
-        "id"
-      ]
+      "required": ["id"]
     },
     "Invoice": {
       "title": "Invoice",
       "type": "object",
       "description": "Represents a customer invoice.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "The user-friendly unique identifier for the invoice."
-        },
-        "tokenId": {
-          "type": "number",
-          "description": "A daily-resetting sequential token number for the invoice."
-        },
-        "userId": {
-          "type": "string",
-          "description": "The ID of the user who created the invoice."
-        },
+        "id": { "type": "string", "description": "The user-friendly unique identifier for the invoice." },
+        "tokenId": { "type": "number", "description": "A daily-resetting sequential token number for the invoice." },
+        "userId": { "type": "string", "description": "The ID of the user who created the invoice." },
         "items": {
           "type": "array",
           "items": {
@@ -100,11 +59,7 @@
         "serviceCharge": { "type": "number" },
         "totalDiscount": { "type": "number" },
         "total": { "type": "number" },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Timestamp when the invoice was created."
-        }
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the invoice was created." }
       },
       "required": ["id", "tokenId", "userId", "items", "total", "createdAt"]
     }
@@ -146,22 +101,20 @@
         }
       },
       {
-        "path": "/google_sheet_settings/{settingId}",
+        "path": "/settings/{settingId}",
         "definition": {
-          "entityName": "GoogleSheetSetting",
-          "schema": {
-            "$ref": "#/backend/entities/GoogleSheetSetting"
-          },
-          "description": "Stores Google Sheet settings. All documents in this collection have the same security requirements.",
+          "entityName": "AppSettings",
+          "schema": { "$ref": "#/backend/entities/AppSettings" },
+          "description": "Stores global application settings. This collection should only contain a single document with a known ID (e.g., 'global').",
           "params": [
             {
               "name": "settingId",
-              "description": "Unique identifier for the Google Sheet setting document."
+              "description": "The unique identifier for the settings document, typically 'global'."
             }
           ]
         }
       }
     ],
-    "reasoning": "This project follows the best practice of using separate, top-level collections for each data model. This ensures that the data for products, invoices, and settings are managed independently for better security and scalability.\n\n1.  **/products/{productId}**: Stores the product catalog. In this prototype, any authenticated user can manage products. For production, this access should be restricted.\n\n2.  **/invoices/{invoiceId}**: Stores individual invoice documents. Security rules ensure users can only access their own invoices.\n\n3.  **/google_sheet_settings/{settingId}**: Stores global application settings. Access should be restricted to admin users in production.\n\nThis structure facilitates clear and robust security rules and adheres to the principles of Authorization Independence and database-as-a-service security best practices."
+    "reasoning": "This project follows the best practice of using separate, top-level collections for each data model. This ensures that the data for products, invoices, and settings are managed independently for better security and scalability.\n\n1.  **/products/{productId}**: Stores the product catalog. In this prototype, any authenticated user can manage products. For production, this access should be restricted.\n\n2.  **/invoices/{invoiceId}**: Stores individual invoice documents. Security rules ensure users can only access their own invoices.\n\n3.  **/settings/{settingId}**: Stores global application settings in a single document. Access should be restricted to admin users in production."
   }
 }
