@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload, Download } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +22,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSettings } from '@/context/settings-context';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { Input } from '../ui/input';
 import {
   Dialog,
@@ -46,6 +46,12 @@ import ProductForm from './product-form';
 import { useProducts } from '@/context/product-context';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '../ui/skeleton';
+import { useFirestore } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
+import Papa from 'papaparse';
+import { collection, doc, writeBatch } from 'firebase/firestore';
+import { appIcons } from '@/lib/data';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 
 export default function ProductManagement() {
@@ -55,6 +61,9 @@ export default function ProductManagement() {
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   const { formatCurrency } = useSettings();
   const [activeTab, setActiveTab] = useState('active');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const firestore = useFirestore();
+  const { toast } = useToast();
 
   const filteredProducts = useMemo(() => {
     const productsByStatus = products.filter(p => p.status === activeTab);
@@ -92,6 +101,102 @@ export default function ProductManagement() {
     setEditingProduct(undefined);
     setIsDialogOpen(true);
   }
+
+  const handleExport = () => {
+    if (products.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'No products to export',
+        description: 'Add some products before exporting.',
+      });
+      return;
+    }
+    const getIconName = (iconComponent: React.ComponentType<{ className?: string }>) => {
+        const iconEntry = appIcons.find(icon => icon.icon === iconComponent);
+        return iconEntry ? iconEntry.name : 'Stethoscope';
+    };
+
+    const dataToExport = products.map(p => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        category: p.category,
+        icon: getIconName(p.icon),
+        imageUrl: p.imageUrl,
+        status: p.status,
+    }));
+
+    const csv = Papa.unparse(dataToExport);
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'products.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({ title: 'Export successful', description: 'Your products have been exported to products.csv.' });
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        const importedProducts = results.data as any[];
+        if (!firestore) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Firestore not available.' });
+            return;
+        }
+
+        try {
+            const batch = writeBatch(firestore);
+            
+            importedProducts.forEach(prod => {
+                if (!prod.name || !prod.price) {
+                    console.warn('Skipping invalid CSV row:', prod);
+                    return;
+                }
+
+                const productData: ProductData = {
+                    id: prod.id || doc(collection(firestore, 'products')).id,
+                    name: prod.name,
+                    price: parseFloat(prod.price) || 0,
+                    category: prod.category || 'Uncategorized',
+                    icon: appIcons.find(i => i.name === prod.icon)?.name || 'Stethoscope',
+                    imageUrl: prod.imageUrl || PlaceHolderImages[0]?.imageUrl || 'https://placehold.co/400x300',
+                    status: prod.status === 'archived' ? 'archived' : 'active',
+                };
+                
+                const docRef = doc(firestore, 'products', productData.id);
+                batch.set(docRef, productData, { merge: true });
+            });
+
+            await batch.commit();
+            toast({ title: 'Import Successful', description: `${importedProducts.length} products have been imported/updated.` });
+
+        } catch (error: any) {
+            console.error('Import failed:', error);
+            toast({ variant: 'destructive', title: 'Import Failed', description: error.message });
+        } finally {
+            if(e.target) e.target.value = '';
+        }
+      },
+      error: (error: any) => {
+          console.error('CSV parsing error:', error);
+          toast({ variant: 'destructive', title: 'CSV Parsing Error', description: error.message });
+      }
+    });
+  };
 
   const renderTableBody = () => {
     if (isLoading) {
@@ -185,17 +290,34 @@ export default function ProductManagement() {
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-start md:items-center flex-col md:flex-row gap-4">
             <div>
               <CardTitle>Products</CardTitle>
               <CardDescription>
                 Manage your products and view their sales performance.
               </CardDescription>
             </div>
-            <Button onClick={openNewProductDialog}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Product
-            </Button>
+             <div className="flex items-center gap-2 self-end md:self-auto">
+                <Button variant="outline" onClick={handleExport}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export
+                </Button>
+                <Button variant="outline" onClick={handleImportClick}>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Import
+                </Button>
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileImport}
+                    style={{ display: 'none' }}
+                    accept=".csv"
+                />
+                <Button onClick={openNewProductDialog}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Product
+                </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
