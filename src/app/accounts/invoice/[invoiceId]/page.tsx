@@ -17,9 +17,9 @@ export default function InvoicePrintPage() {
     const { user, isUserLoading } = useUser();
 
     const invoiceDocRef = useMemoFirebase(() => {
-        if (!firestore || !invoiceId) return null;
+        if (!firestore || !invoiceId || !user) return null;
         return doc(firestore, 'invoices', invoiceId);
-    }, [firestore, invoiceId]);
+    }, [firestore, invoiceId, user]);
 
     const { data: invoice, isLoading } = useDoc<Invoice>(invoiceDocRef);
     
