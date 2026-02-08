@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -423,7 +424,9 @@ export default function AccountManagement() {
             </div>
           )}
            <DialogFooter>
-                <Button onClick={() => setIsDetailsDialogOpen(false)}>Close</Button>
+                <DialogClose asChild>
+                    <Button variant="outline">Close</Button>
+                </DialogClose>
            </DialogFooter>
         </DialogContent>
       </Dialog>
