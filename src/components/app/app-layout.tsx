@@ -10,7 +10,8 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarTrigger,
-  SidebarFooter
+  SidebarFooter,
+  useSidebar
 } from '@/components/ui/sidebar';
 import { Home, Settings, Package, BookUser, LogOut, User, LineChart, Receipt } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -37,6 +38,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   const { settings } = useSettings();
   const [logoLoadError, setLogoLoadError] = useState(false);
+  const { setOpenMobile } = useSidebar();
+
+  useEffect(() => {
+    // Close the mobile sidebar on route change.
+    setOpenMobile(false);
+  }, [pathname, setOpenMobile]);
 
   useEffect(() => {
     // If auth is not loading and there's no user, redirect to login.
