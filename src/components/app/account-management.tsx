@@ -47,10 +47,11 @@ import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebas
 import { collection, query, where, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
 import { Calendar } from "@/components/ui/calendar"
-import { addDays, format, startOfWeek } from "date-fns"
+import { addDays, format, startOfWeek, endOfDay } from "date-fns"
 import { cn } from '@/lib/utils';
 import { Separator } from '../ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import Papa from 'papaparse';
 
 interface Invoice {
     id: string;
@@ -122,20 +123,21 @@ export default function AccountManagement() {
   const handleExport = (rangeType: 'last30days' | 'thisWeek' | 'today' | 'custom') => {
     let from: Date | undefined;
     let to: Date | undefined;
+    const now = new Date();
 
     switch (rangeType) {
         case 'last30days':
-            from = addDays(new Date(), -29);
-            to = new Date();
+            from = addDays(now, -29);
+            to = now;
             break;
         case 'thisWeek':
-            from = startOfWeek(new Date());
-            to = new Date();
+            from = startOfWeek(now);
+            to = now;
             break;
         case 'today':
             from = new Date();
             from.setHours(0,0,0,0);
-            to = new Date();
+            to = now;
             break;
         case 'custom':
             from = dateRange?.from;
@@ -155,9 +157,62 @@ export default function AccountManagement() {
         to = from;
     }
     
+    const toDate = endOfDay(to);
+
+    const invoicesToExport = sortedInvoices.filter(invoice => {
+        const invoiceDate = invoice.createdAt.toDate();
+        return invoiceDate >= from! && invoiceDate <= toDate;
+    });
+
+    if (invoicesToExport.length === 0) {
+        toast({
+            title: "No Invoices Found",
+            description: "There are no invoices in the selected date range to export.",
+        });
+        if (rangeType === 'custom') {
+            setIsExportDialogOpen(false);
+        }
+        return;
+    }
+
+    const dataForCsv = invoicesToExport.flatMap(invoice => 
+        invoice.items.map(item => ({
+            'Invoice ID': invoice.id,
+            'Token': invoice.tokenId,
+            'Date': formatTimestamp(invoice.createdAt),
+            'Customer Name': invoice.customerName || '',
+            'Customer Email': invoice.customerEmail || '',
+            'Customer Phone': invoice.customerPhone || '',
+            'Notes': invoice.notes || '',
+            'Item ID': item.id,
+            'Item Name': item.name,
+            'Quantity': item.quantity,
+            'Item Price': item.price,
+            'Item Discount': item.discount,
+            'Item Total': (item.price * item.quantity) - (item.discount * item.quantity),
+            'Subtotal': invoice.subtotal,
+            'Tax': invoice.tax,
+            'Packaging Charge': invoice.packagingCharge,
+            'Service Charge': invoice.serviceCharge,
+            'Total Discount': invoice.totalDiscount,
+            'Total': invoice.total,
+        }))
+    );
+
+    const csv = Papa.unparse(dataForCsv);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `invoices-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
     toast({
-        title: "Export feature is coming soon!",
-        description: `We're working on exporting invoices from ${format(from, 'PPP')} to ${format(to, 'PPP')}.`,
+        title: "Export Successful",
+        description: `${invoicesToExport.length} invoices have been exported.`,
     });
     
     if (rangeType === 'custom') {
