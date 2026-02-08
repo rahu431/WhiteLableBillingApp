@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -28,7 +28,7 @@ import { MoreHorizontal, FileDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/utils';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, where, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
 
 interface Invoice {
@@ -44,14 +44,24 @@ export default function AccountManagement() {
 
   const invoicesQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
+    // Removed orderBy to simplify the query and avoid indexing issues
     return query(
       collection(firestore, 'invoices'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', user.uid)
     );
   }, [firestore, user]);
 
   const { data: invoices, isLoading } = useCollection<Invoice>(invoicesQuery);
+
+  // Sort invoices on the client-side
+  const sortedInvoices = useMemo(() => {
+    if (!invoices) return [];
+    return [...invoices].sort((a, b) => {
+      const dateA = a.createdAt?.toDate() ?? new Date(0);
+      const dateB = b.createdAt?.toDate() ?? new Date(0);
+      return dateB.getTime() - dateA.getTime();
+    });
+  }, [invoices]);
 
   const formatTimestamp = (timestamp: Timestamp | null | undefined) => {
     if (!timestamp) return 'N/A';
@@ -111,8 +121,8 @@ export default function AccountManagement() {
                   <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                 </TableRow>
               ))
-            ) : invoices && invoices.length > 0 ? (
-              invoices.map((invoice) => (
+            ) : sortedInvoices && sortedInvoices.length > 0 ? (
+              sortedInvoices.map((invoice) => (
                 <TableRow key={invoice.id}>
                   <TableCell className="font-medium truncate" style={{ maxWidth: 150 }}>{invoice.id}</TableCell>
                   <TableCell>{formatTimestamp(invoice.createdAt)}</TableCell>
