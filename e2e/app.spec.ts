@@ -17,7 +17,7 @@ test.describe('App Navigation and Core Features', () => {
     await page.goto('/');
 
     // Find a specific product card by its title and wait for it to be visible.
-    const productCard = page.getByRole('heading', { name: 'Filter Coffee' }).locator('xpath=../..');
+    const productCard = page.getByText('Filter Coffee', { exact: true }).locator('xpath=ancestor::div[contains(@class, "flex-col")]');
     await expect(productCard).toBeVisible({ timeout: 20000 }); // Increased timeout for product loading
 
     // Click the product to open the dialog.
