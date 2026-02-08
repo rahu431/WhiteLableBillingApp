@@ -45,10 +45,10 @@ import ProductForm from './product-form';
 import { useProducts } from '@/context/product-context';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '../ui/skeleton';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import Papa from 'papaparse';
-import { collection, doc, writeBatch, type Timestamp } from 'firebase/firestore';
+import { collection, doc, writeBatch, type Timestamp, query, where } from 'firebase/firestore';
 import { appIcons } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import ProductImage from './product-image';
@@ -72,12 +72,14 @@ export default function ProductManagement() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const firestore = useFirestore();
   const { toast } = useToast();
+  const { user } = useUser();
 
-  const invoicesCollectionRef = useMemoFirebase(() =>
-    firestore ? collection(firestore, 'invoices') : null,
-    [firestore]
-  );
-  const { data: invoices, isLoading: isLoadingInvoices } = useCollection<SalesInvoice>(invoicesCollectionRef);
+  const invoicesQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(collection(firestore, 'invoices'), where('userId', '==', user.uid));
+  }, [firestore, user]);
+  
+  const { data: invoices, isLoading: isLoadingInvoices } = useCollection<SalesInvoice>(invoicesQuery);
   
   const isLoading = isLoadingProducts || isLoadingInvoices;
 
