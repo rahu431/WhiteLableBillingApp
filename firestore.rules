@@ -75,20 +75,20 @@ service cloud.firestore {
     /**
      * @description
      * Rules for the invoices collection. Users can create invoices and can only read/update/delete
-     * their own invoices.
+     * their own invoices. Users can list invoices only if they are querying for their own user ID.
      * @path
      * /invoices/{invoiceId}
      * @allow
-     * An authenticated user can create an invoice.
+     * An authenticated user can create an invoice for themselves.
      * @allow
      * The user who created the invoice can read, update or delete it.
-     * @deny
-     * Users cannot list all invoices.
+     * @allow
+     * Users can list their own invoices by querying on `userId`.
      */
     match /invoices/{invoiceId} {
         allow create: if isSignedIn() && isOwner(request.resource.data.userId);
         allow read, update, delete: if isSignedIn() && isOwner(resource.data.userId);
-        allow list: if false;
+        allow list: if isSignedIn() && request.query.where.userId == request.auth.uid;
     }
   }
 }
