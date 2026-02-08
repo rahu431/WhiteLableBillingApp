@@ -82,7 +82,6 @@ export default function AccountManagement() {
   const { formatCurrency, settings } = useSettings();
   const { toast } = useToast();
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: addDays(new Date(), -29),
@@ -164,11 +163,6 @@ export default function AccountManagement() {
     if (rangeType === 'custom') {
         setIsExportDialogOpen(false);
     }
-  };
-  
-  const handleViewDetails = (invoice: Invoice) => {
-    setSelectedInvoice(invoice);
-    setIsDetailsDialogOpen(true);
   };
   
   const handleDownloadPdf = (invoiceId: string) => {
@@ -314,7 +308,7 @@ export default function AccountManagement() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handleViewDetails(invoice)}>
+                          <DropdownMenuItem onClick={() => setSelectedInvoice(invoice)}>
                             View Details
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDownloadPdf(invoice.id)}>
@@ -337,7 +331,7 @@ export default function AccountManagement() {
         </CardContent>
       </Card>
       
-      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+      <Dialog open={!!selectedInvoice} onOpenChange={(open) => !open && setSelectedInvoice(null)}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Invoice #{selectedInvoice?.tokenId}</DialogTitle>
