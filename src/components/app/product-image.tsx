@@ -2,27 +2,41 @@
 
 import { useState, useEffect } from 'react';
 import Image, { type ImageProps } from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Coffee } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
+// We need alt for the Image component, and it's good for accessibility.
 interface ProductImageProps extends Omit<ImageProps, 'src' | 'onError'> {
   src: string;
+  alt: string;
 }
 
-const ProductImage: React.FC<ProductImageProps> = ({ src, ...props }) => {
-  const [imgSrc, setImgSrc] = useState(src);
-  
-  const fallbackSrc = PlaceHolderImages.find(p => p.id === 'general-check-up')?.imageUrl || 'https://placehold.co/400x300';
+const ProductImage: React.FC<ProductImageProps> = ({ src, alt, className, ...props }) => {
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    setImgSrc(src);
+    // Reset error state if the image src changes
+    setHasError(false);
   }, [src]);
 
+  // If the src is invalid or has failed to load, show the fallback.
+  if (hasError || !src) {
+    return (
+      <div className={cn("flex items-center justify-center bg-muted", className)}>
+        <Coffee className="w-1/3 h-1/3 text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // Otherwise, attempt to render the image.
   return (
     <Image
       {...props}
-      src={imgSrc}
+      alt={alt}
+      className={className}
+      src={src}
       onError={() => {
-        setImgSrc(fallbackSrc);
+        setHasError(true);
       }}
     />
   );
