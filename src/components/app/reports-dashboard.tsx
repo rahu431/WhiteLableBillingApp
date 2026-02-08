@@ -40,19 +40,24 @@ export default function ReportsDashboard() {
 
     const invoicesQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
-        // Fetch last 90 days of invoices for performance
-        const startDate = subDays(new Date(), 90);
+        // Fetch all user invoices, will filter by date on the client
         return query(
             collection(firestore, 'invoices'),
-            where('userId', '==', user.uid),
-            where('createdAt', '>=', startDate)
+            where('userId', '==', user.uid)
         );
     }, [firestore, user]);
 
-    const { data: invoices, isLoading } = useCollection<Invoice>(invoicesQuery);
+    const { data: allInvoices, isLoading } = useCollection<Invoice>(invoicesQuery);
 
     const reportData = useMemo(() => {
-        if (!invoices || invoices.length === 0) {
+        if (!allInvoices || allInvoices.length === 0) {
+            return null;
+        }
+        
+        const last90DaysStart = subDays(new Date(), 90);
+        const invoices = allInvoices.filter(inv => inv.createdAt.toDate() >= last90DaysStart);
+
+        if (invoices.length === 0) {
             return null;
         }
 
@@ -134,7 +139,7 @@ export default function ReportsDashboard() {
             salesByHourData,
             trendingProducts,
         };
-    }, [invoices, products]);
+    }, [allInvoices, products]);
 
     const chartConfig = {
       revenue: { label: "Revenue", color: "hsl(var(--chart-1))" },
