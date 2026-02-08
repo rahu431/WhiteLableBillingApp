@@ -39,7 +39,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import ProductForm from './product-form';
 import { useProducts } from '@/context/product-context';
@@ -67,6 +66,7 @@ export default function ProductManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+  const [productToArchive, setProductToArchive] = useState<Product | null>(null);
   const { formatCurrency } = useSettings();
   const [activeTab, setActiveTab] = useState('active');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -127,8 +127,10 @@ export default function ProductManagement() {
     setIsDialogOpen(true);
   };
   
-  const handleArchive = (productId: string) => {
-    updateProduct(productId, { status: 'archived' });
+  const handleConfirmArchive = () => {
+    if (!productToArchive) return;
+    updateProduct(productToArchive.id, { status: 'archived' });
+    setProductToArchive(null);
   };
 
   const handleUnarchive = (productId: string) => {
@@ -284,39 +286,31 @@ export default function ProductManagement() {
           </TableCell>
           <TableCell className="hidden md:table-cell">{dailySales.get(product.id) || 0}</TableCell>
           <TableCell>
-            <AlertDialog>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button aria-haspopup="true" size="icon" variant="ghost">
-                    <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">Toggle menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => handleEdit(product)}>Edit</DropdownMenuItem>
-                  {product.status === 'active' ? (
-                    <AlertDialogTrigger asChild>
-                      <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>Archive</DropdownMenuItem>
-                    </AlertDialogTrigger>
-                  ) : (
-                    <DropdownMenuItem onClick={() => handleUnarchive(product.id)}>Unarchive</DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure you want to archive this product?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Archived products will not be available for selection when creating new invoices.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => handleArchive(product.id)}>Archive Product</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button aria-haspopup="true" size="icon" variant="ghost">
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleEdit(product)}>Edit</DropdownMenuItem>
+                {product.status === 'active' ? (
+                  <DropdownMenuItem 
+                    className="text-destructive" 
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setProductToArchive(product);
+                    }}
+                  >
+                    Archive
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem onClick={() => handleUnarchive(product.id)}>Unarchive</DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </TableCell>
         </TableRow>
       ))
@@ -420,6 +414,21 @@ export default function ProductManagement() {
           />
         </DialogContent>
       </Dialog>
+      
+      <AlertDialog open={!!productToArchive} onOpenChange={(open) => !open && setProductToArchive(null)}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure you want to archive this product?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Archived products will not be available for selection when creating new invoices.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setProductToArchive(null)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmArchive}>Archive Product</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
