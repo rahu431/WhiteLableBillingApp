@@ -45,6 +45,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import ProductForm from './product-form';
 import { useProducts } from '@/context/product-context';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 export default function ProductManagement() {
   const { products, setProducts } = useProducts();
@@ -52,11 +54,13 @@ export default function ProductManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   const { formatCurrency } = useSettings();
-  
+  const [activeTab, setActiveTab] = useState('active');
+
   const filteredProducts = useMemo(() => {
-    if (!searchTerm) return products;
-    return products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-  }, [searchTerm, products]);
+    const productsByStatus = products.filter(p => p.status === activeTab);
+    if (!searchTerm) return productsByStatus;
+    return productsByStatus.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  }, [searchTerm, products, activeTab]);
 
   const handleSaveProduct = (productData: Omit<Product, 'id' | 'icon' | 'status'> & {icon: string}) => {
     if (editingProduct) {
@@ -114,16 +118,23 @@ export default function ProductManagement() {
               Add Product
             </Button>
           </div>
-          <div className="pt-4">
-            <Input 
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-          </div>
         </CardHeader>
         <CardContent>
+          <div className="flex justify-between items-center mb-4">
+            <Tabs defaultValue="active" onValueChange={(value) => setActiveTab(value)}>
+                <TabsList>
+                <TabsTrigger value="active">Active</TabsTrigger>
+                <TabsTrigger value="archived">Archived</TabsTrigger>
+                </TabsList>
+            </Tabs>
+            <div className="w-1/3">
+                <Input 
+                    placeholder={`Search ${activeTab} products...`}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -142,64 +153,72 @@ export default function ProductManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt={product.name}
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src={product.imageUrl}
-                      width="64"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>
-                    <Badge variant={product.status === 'active' ? 'outline' : 'secondary'}>
-                      {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {formatCurrency(product.price)}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">25</TableCell>
-                  <TableCell>
-                    <AlertDialog>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handleEdit(product)}>Edit</DropdownMenuItem>
-                          {product.status === 'active' ? (
-                            <AlertDialogTrigger asChild>
-                              <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>Archive</DropdownMenuItem>
-                            </AlertDialogTrigger>
-                          ) : (
-                            <DropdownMenuItem onClick={() => handleUnarchive(product.id)}>Unarchive</DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                       <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure you want to archive this product?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Archived products will not be available for selection when creating new invoices.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleArchive(product.id)}>Archive Product</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell className="hidden sm:table-cell">
+                      <Image
+                        alt={product.name}
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={product.imageUrl}
+                        width="64"
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>
+                      <Badge variant={product.status === 'active' ? 'outline' : 'secondary'}>
+                        {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {formatCurrency(product.price)}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">25</TableCell>
+                    <TableCell>
+                      <AlertDialog>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleEdit(product)}>Edit</DropdownMenuItem>
+                            {product.status === 'active' ? (
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>Archive</DropdownMenuItem>
+                              </AlertDialogTrigger>
+                            ) : (
+                              <DropdownMenuItem onClick={() => handleUnarchive(product.id)}>Unarchive</DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure you want to archive this product?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Archived products will not be available for selection when creating new invoices.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleArchive(product.id)}>Archive Product</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    No {activeTab} products found.
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>
