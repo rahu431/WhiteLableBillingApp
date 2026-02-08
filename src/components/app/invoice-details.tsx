@@ -64,6 +64,9 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
   }, [qrCodeUrl]);
 
   const getInvoiceAsText = () => {
+    const appName = settings?.appName || 'Your App';
+    const header = `*Invoice from ${appName}*\n\n`;
+
     const itemsText = items.map(item => {
       let itemText = `- ${item.name} (x${item.quantity}): ${formatCurrency(item.price * item.quantity)}`;
       if (item.discount > 0) {
@@ -80,7 +83,7 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
     if (serviceCharge > 0) summaryText += `\nService Charge: ${formatCurrency(serviceCharge)}`;
     summaryText += `\n--------------------\n*Total: ${formatCurrency(total)}*`;
 
-    return `*Your Invoice*:\n\n${itemsText}\n${summaryText}`;
+    return `${header}${itemsText}\n${summaryText}`;
   }
 
   const copyToClipboard = async (text: string) => {

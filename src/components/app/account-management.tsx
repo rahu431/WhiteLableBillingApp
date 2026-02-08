@@ -198,8 +198,51 @@ export default function AccountManagement() {
     }
   };
   
-  const handleDownloadPdf = (invoiceId: string) => {
+  const handlePrintInvoice = (invoiceId: string) => {
       window.open(`/accounts/invoice/${invoiceId}`, '_blank');
+  };
+
+  const getInvoiceAsText = (invoice: Invoice) => {
+    const appName = settings?.appName || 'Your App';
+    const header = `*Invoice from ${appName}*\n\n`;
+    
+    const customerInfo = `Customer: ${invoice.customerName || 'N/A'}\nInvoice ID: ${invoice.id}\nDate: ${formatTimestamp(invoice.createdAt)}\n\n`;
+
+    const itemsText = invoice.items.map(item => {
+      let itemText = `- ${item.name} (x${item.quantity}): ${formatCurrency((item.price * item.quantity) - (item.discount * item.quantity))}`;
+      if (item.discount > 0) {
+        itemText += ` (Discount: ${formatCurrency(item.discount * item.quantity)})`;
+      }
+      return itemText;
+    }).join('\n');
+    
+
+    let summaryText = `\n--------------------\nSubtotal: ${formatCurrency(invoice.subtotal)}`;
+    if (invoice.totalDiscount > 0) summaryText += `\nTotal Discount: -${formatCurrency(invoice.totalDiscount)}`;
+    if (invoice.tax > 0) summaryText += `\nTax: ${formatCurrency(invoice.tax)}`;
+    if (invoice.packagingCharge > 0) summaryText += `\nPackaging: ${formatCurrency(invoice.packagingCharge)}`;
+    if (invoice.serviceCharge > 0) summaryText += `\nService Charge: ${formatCurrency(invoice.serviceCharge)}`;
+    summaryText += `\n--------------------\n*Total: ${formatCurrency(invoice.total)}*`;
+
+    return `${header}${customerInfo}${itemsText}\n${summaryText}`;
+  }
+
+  const handleCopyInvoice = async (invoice: Invoice) => {
+    const invoiceText = getInvoiceAsText(invoice);
+    try {
+      await navigator.clipboard.writeText(invoiceText);
+      toast({
+        title: "Invoice Copied",
+        description: "The invoice details have been copied to your clipboard.",
+      });
+    } catch (err) {
+      console.error('Error copying to clipboard:', err);
+      toast({
+        title: "Copying Failed",
+        description: "Could not copy the invoice to your clipboard.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -341,8 +384,11 @@ export default function AccountManagement() {
                           <DropdownMenuItem onClick={() => setSelectedInvoice(invoice)}>
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDownloadPdf(invoice.id)}>
-                            Download PDF
+                          <DropdownMenuItem onClick={() => handlePrintInvoice(invoice.id)}>
+                            Print Invoice
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleCopyInvoice(invoice)}>
+                            Copy Invoice
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
