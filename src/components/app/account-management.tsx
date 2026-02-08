@@ -52,35 +52,13 @@ import { cn } from '@/lib/utils';
 import { Separator } from '../ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import Papa from 'papaparse';
-
-interface Invoice {
-    id: string;
-    tokenId: number;
-    createdAt: Timestamp;
-    customerName?: string;
-    customerEmail?: string;
-    customerPhone?: string;
-    notes?: string;
-    items: {
-        id: string;
-        name: string;
-        price: number;
-        quantity: number;
-        discount: number;
-    }[];
-    subtotal: number;
-    tax: number;
-    packagingCharge: number;
-    serviceCharge: number;
-    totalDiscount: number;
-    total: number;
-}
+import type { Invoice } from '@/lib/types';
 
 
 export default function AccountManagement() {
   const firestore = useFirestore();
   const { user } = useUser();
-  const { formatCurrency, settings } = useSettings();
+  const { settings, formatCurrency } = useSettings();
   const { toast } = useToast();
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
@@ -221,10 +199,7 @@ export default function AccountManagement() {
   };
   
   const handleDownloadPdf = (invoiceId: string) => {
-      toast({
-          title: "PDF Download is coming soon!",
-          description: `We're working on getting the PDF for invoice ${invoiceId} ready for you.`,
-      });
+      window.open(`/accounts/invoice/${invoiceId}`, '_blank');
   };
 
   return (
