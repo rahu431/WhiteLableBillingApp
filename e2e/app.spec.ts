@@ -15,18 +15,26 @@ test.describe('App Navigation and Core Features', () => {
   
   test('should add a product to the invoice', async ({ page }) => {
     await page.goto('/');
-  
-    // Wait for products to load and click on the first one
-    const firstProduct = page.locator('div.grid > div > .flex-col').first();
-    await expect(firstProduct).toBeVisible({ timeout: 20000 }); // Increased timeout for product loading
-    await firstProduct.click();
-  
-    // In the dialog, add to invoice
+
+    // Find a specific product card by its title and wait for it to be visible.
+    const productCard = page.getByRole('heading', { name: 'Filter Coffee' }).locator('xpath=../..');
+    await expect(productCard).toBeVisible({ timeout: 20000 }); // Increased timeout for product loading
+
+    // Click the product to open the dialog.
+    await productCard.click();
+
+    // The "Add to invoice" dialog should appear.
+    await expect(page.getByRole('heading', { name: 'Add Filter Coffee to Invoice' })).toBeVisible();
+    
+    // Add to invoice.
     await page.getByRole('button', { name: 'Add to Invoice' }).click();
-  
-    // Check that the invoice details section is no longer empty
+
+    // Check that the invoice details section is no longer empty.
     await expect(page.getByRole('heading', { name: 'Current Invoice' })).toBeVisible();
     await expect(page.getByText('Your invoice is empty')).not.toBeVisible();
+    
+    // Verify the item and subtotal are now in the invoice.
+    await expect(page.getByText('Filter Coffee')).toBeVisible();
     await expect(page.getByText('Subtotal')).toBeVisible();
   });
 
