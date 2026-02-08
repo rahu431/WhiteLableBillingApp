@@ -15,6 +15,7 @@ import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, Timest
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import CurrencyDisplay from '../ui/currency-display';
 
 
 interface InvoiceDetailsProps {
@@ -80,7 +81,7 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
     if (totalDiscount > 0) summaryText += `\nTotal Discount: -${formatCurrency(totalDiscount)}`;
     if (tax > 0) summaryText += `\nTax: ${formatCurrency(tax)}`;
     if (packagingCharge > 0) summaryText += `\nPackaging: ${formatCurrency(packagingCharge)}`;
-    if (serviceCharge > 0) summaryText += `\nService Charge: ${formatCurrency(serviceCharge)}`;
+    if (serviceCharge > 0) summaryText += `\nService: ${formatCurrency(serviceCharge)}`;
     summaryText += `\n--------------------\n*Total: ${formatCurrency(total)}*`;
 
     return `${header}${itemsText}\n${summaryText}`;
@@ -319,37 +320,37 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span>Subtotal</span>
-            <span>{formatCurrency(subtotal)}</span>
+            <CurrencyDisplay value={subtotal} />
           </div>
            {totalDiscount > 0 && (
             <div className="flex justify-between text-green-600">
               <span>Discount</span>
-              <span>-{formatCurrency(totalDiscount)}</span>
+              <span>-<CurrencyDisplay value={totalDiscount} /></span>
             </div>
           )}
           {tax > 0 && (
             <div className="flex justify-between">
               <span>Tax</span>
-              <span>{formatCurrency(tax)}</span>
+              <CurrencyDisplay value={tax} />
             </div>
           )}
           {packagingCharge > 0 && (
              <div className="flex justify-between">
               <span>Packaging</span>
-              <span>{formatCurrency(packagingCharge)}</span>
+              <CurrencyDisplay value={packagingCharge} />
             </div>
           )}
           {serviceCharge > 0 && (
              <div className="flex justify-between">
               <span>Service</span>
-              <span>{formatCurrency(serviceCharge)}</span>
+              <CurrencyDisplay value={serviceCharge} />
             </div>
           )}
         </div>
         <Separator className="my-3" />
         <div className="flex justify-between items-center text-xl font-bold mb-4">
           <span>Total</span>
-          <span>{formatCurrency(total)}</span>
+          <CurrencyDisplay value={total} className="font-bold" />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Button variant="outline" onClick={handleShare}>
@@ -446,7 +447,7 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
                     )}
                   </div>
                   <p className="mt-4 text-sm text-muted-foreground">UPI ID: <span className="font-mono text-foreground">{settings.upiId}</span></p>
-                  <p className="font-bold text-xl mt-1">{formatCurrency(total)}</p>
+                  <p className="font-bold text-xl mt-1"><CurrencyDisplay value={total} /></p>
                 </>
               ) : (
                 <div className="text-center text-muted-foreground">

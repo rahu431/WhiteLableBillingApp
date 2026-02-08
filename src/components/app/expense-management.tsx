@@ -23,6 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import CurrencyDisplay from '../ui/currency-display';
 
 
 interface Expense {
@@ -48,7 +49,7 @@ const expenseCategories = ['Supplies', 'Rent', 'Utilities', 'Marketing', 'Salari
 export default function ExpenseManagement() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { formatCurrency, settings } = useSettings();
+  const { settings } = useSettings();
   const { toast } = useToast();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -181,7 +182,7 @@ export default function ExpenseManagement() {
                     <TableCell className="font-medium">{expense.name}</TableCell>
                     <TableCell>{expense.category}</TableCell>
                     <TableCell>{formatTimestamp(expense.createdAt)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(expense.amount)}</TableCell>
+                    <TableCell className="text-right"><CurrencyDisplay value={expense.amount} /></TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

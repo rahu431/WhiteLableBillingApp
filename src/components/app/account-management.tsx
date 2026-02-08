@@ -53,6 +53,7 @@ import { Separator } from '../ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import Papa from 'papaparse';
 import type { Invoice } from '@/lib/types';
+import CurrencyDisplay from '../ui/currency-display';
 
 
 export default function AccountManagement() {
@@ -371,7 +372,7 @@ export default function AccountManagement() {
                     <TableCell>
                       <Badge variant="outline">Paid</Badge>
                     </TableCell>
-                    <TableCell className="text-right">{formatCurrency(invoice.total)}</TableCell>
+                    <TableCell className="text-right"><CurrencyDisplay value={invoice.total} /></TableCell>
                     <TableCell>{invoice.items.length}</TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -445,9 +446,9 @@ export default function AccountManagement() {
                             <TableRow key={item.id}>
                                 <TableCell>{item.name}</TableCell>
                                 <TableCell className="text-center">{item.quantity}</TableCell>
-                                <TableCell className="text-right">{formatCurrency(item.price)}</TableCell>
-                                <TableCell className="text-right">{formatCurrency(item.discount * item.quantity)}</TableCell>
-                                <TableCell className="text-right">{formatCurrency(item.price * item.quantity - item.discount * item.quantity)}</TableCell>
+                                <TableCell className="text-right"><CurrencyDisplay value={item.price} /></TableCell>
+                                <TableCell className="text-right"><CurrencyDisplay value={item.discount * item.quantity} /></TableCell>
+                                <TableCell className="text-right"><CurrencyDisplay value={item.price * item.quantity - item.discount * item.quantity} /></TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -460,36 +461,36 @@ export default function AccountManagement() {
                     <Separator />
                     <div className="flex justify-between text-sm">
                         <span>Subtotal</span>
-                        <span>{formatCurrency(selectedInvoice.subtotal)}</span>
+                        <span><CurrencyDisplay value={selectedInvoice.subtotal} /></span>
                     </div>
                     {selectedInvoice.totalDiscount > 0 && (
                         <div className="flex justify-between text-sm text-green-600">
                         <span>Discount</span>
-                        <span>-{formatCurrency(selectedInvoice.totalDiscount)}</span>
+                        <span>-<CurrencyDisplay value={selectedInvoice.totalDiscount} /></span>
                         </div>
                     )}
                     {selectedInvoice.tax > 0 && (
                         <div className="flex justify-between text-sm">
                         <span>Tax</span>
-                        <span>{formatCurrency(selectedInvoice.tax)}</span>
+                        <span><CurrencyDisplay value={selectedInvoice.tax} /></span>
                         </div>
                     )}
                     {selectedInvoice.packagingCharge > 0 && (
                         <div className="flex justify-between text-sm">
                         <span>Packaging</span>
-                        <span>{formatCurrency(selectedInvoice.packagingCharge)}</span>
+                        <span><CurrencyDisplay value={selectedInvoice.packagingCharge} /></span>
                         </div>
                     )}
                     {selectedInvoice.serviceCharge > 0 && (
                         <div className="flex justify-between text-sm">
                         <span>Service</span>
-                        <span>{formatCurrency(selectedInvoice.serviceCharge)}</span>
+                        <span><CurrencyDisplay value={selectedInvoice.serviceCharge} /></span>
                         </div>
                     )}
                     <Separator />
                     <div className="flex justify-between font-bold text-lg">
                         <span>Total</span>
-                        <span>{formatCurrency(selectedInvoice.total)}</span>
+                        <span><CurrencyDisplay value={selectedInvoice.total} /></span>
                     </div>
                 </div>
               </div>

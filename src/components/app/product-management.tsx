@@ -51,6 +51,7 @@ import { collection, doc, writeBatch, type Timestamp, query, where } from 'fireb
 import { appIcons } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import ProductImage from './product-image';
+import CurrencyDisplay from '../ui/currency-display';
 
 interface SalesInvoice {
     createdAt: Timestamp;
@@ -67,6 +68,7 @@ export default function ProductManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   const [productToArchive, setProductToArchive] = useState<Product | null>(null);
+  const [isArchiveAlertOpen, setIsArchiveAlertOpen] = useState(false);
   const { formatCurrency } = useSettings();
   const [activeTab, setActiveTab] = useState('active');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -131,6 +133,7 @@ export default function ProductManagement() {
     if (!productToArchive) return;
     updateProduct(productToArchive.id, { status: 'archived' });
     setProductToArchive(null);
+    setIsArchiveAlertOpen(false);
   };
 
   const handleUnarchive = (productId: string) => {
@@ -282,7 +285,7 @@ export default function ProductManagement() {
             </Badge>
           </TableCell>
           <TableCell className="hidden md:table-cell">
-            {formatCurrency(product.price)}
+            <CurrencyDisplay value={product.price} />
           </TableCell>
           <TableCell className="hidden md:table-cell">{dailySales.get(product.id) || 0}</TableCell>
           <TableCell>
@@ -302,6 +305,7 @@ export default function ProductManagement() {
                     onSelect={(e) => {
                       e.preventDefault();
                       setProductToArchive(product);
+                      setIsArchiveAlertOpen(true);
                     }}
                   >
                     Archive
@@ -415,7 +419,7 @@ export default function ProductManagement() {
         </DialogContent>
       </Dialog>
       
-      <AlertDialog open={!!productToArchive} onOpenChange={(open) => !open && setProductToArchive(null)}>
+      <AlertDialog open={isArchiveAlertOpen} onOpenChange={setIsArchiveAlertOpen}>
         <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure you want to archive this product?</AlertDialogTitle>
@@ -424,7 +428,7 @@ export default function ProductManagement() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setProductToArchive(null)}>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={handleConfirmArchive}>Archive Product</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format, subDays, startOfDay, getDay, getHours } from 'date-fns';
 import { PackageSearch, TrendingUp, Wallet, TrendingDown, DollarSign } from 'lucide-react';
 import type { Product } from '@/lib/types';
+import CurrencyDisplay from '../ui/currency-display';
 
 
 interface Invoice {
@@ -235,7 +236,7 @@ export default function ReportsDashboard() {
                         <Wallet className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(reportData.totalRevenue)}</div>
+                        <div className="text-2xl font-bold"><CurrencyDisplay value={reportData.totalRevenue} /></div>
                         <p className="text-xs text-muted-foreground">Based on last 90 days</p>
                     </CardContent>
                 </Card>
@@ -245,7 +246,7 @@ export default function ReportsDashboard() {
                         <TrendingDown className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(reportData.totalExpenses)}</div>
+                        <div className="text-2xl font-bold"><CurrencyDisplay value={reportData.totalExpenses} /></div>
                          <p className="text-xs text-muted-foreground">Based on last 90 days</p>
                     </CardContent>
                 </Card>
@@ -255,7 +256,7 @@ export default function ReportsDashboard() {
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className={`text-2xl font-bold ${reportData.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(reportData.netProfit)}</div>
+                        <div className={`text-2xl font-bold ${reportData.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}><CurrencyDisplay value={reportData.netProfit} /></div>
                          <p className="text-xs text-muted-foreground">Revenue minus expenses</p>
                     </CardContent>
                 </Card>
@@ -282,7 +283,7 @@ export default function ReportsDashboard() {
                              <ComposedChart data={reportData.profitLossChartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                                 <CartesianGrid vertical={false} />
                                 <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => value.slice(0, 3)} />
-                                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => formatCurrency(value as number).slice(0, -3)} />
+                                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => formatCurrency(value as number).replace(/(\.00|,00)$/, '')} />
                                 <ChartTooltip content={<ChartTooltipContent />} />
                                 <Legend />
                                 <Bar dataKey="expenses" fill="var(--color-expenses)" radius={4} barSize={10} />
@@ -323,7 +324,7 @@ export default function ReportsDashboard() {
                                     <div className="font-semibold">{index + 1}. {product.name}</div>
                                     <div className="ml-auto text-right">
                                         <div className="font-bold">{product.quantity} sold</div>
-                                        <div className="text-xs text-muted-foreground">{formatCurrency(product.revenue)}</div>
+                                        <div className="text-xs text-muted-foreground"><CurrencyDisplay value={product.revenue} /></div>
                                     </div>
                                 </div>
                             ))}

@@ -20,6 +20,7 @@ import { Plus } from 'lucide-react';
 import { useProducts } from '@/context/product-context';
 import { useSettings } from '@/context/settings-context';
 import ProductImage from '@/components/app/product-image';
+import CurrencyDisplay from '../ui/currency-display';
 
 export default function ProductGrid() {
   const { addItem } = useInvoice();
@@ -91,7 +92,7 @@ export default function ProductGrid() {
                     <CardTitle className="text-base font-semibold">{product.name}</CardTitle>
                   </CardHeader>
                   <CardContent className="flex items-center justify-between p-4 pt-0">
-                    <p className="text-lg font-bold text-foreground">{formatCurrency(product.price)}</p>
+                    <p className="text-lg font-bold text-foreground"><CurrencyDisplay value={product.price} /></p>
                     <Button size="icon" variant="outline" aria-label={`Add ${product.name} to invoice`}>
                       <Plus className="w-5 h-5" />
                     </Button>

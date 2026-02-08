@@ -4,6 +4,7 @@ import { type Invoice } from "@/lib/types";
 import Image from "next/image";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
+import CurrencyDisplay from "../ui/currency-display";
 
 export default function PrintableInvoice({ invoice }: { invoice: Invoice }) {
     const { settings, formatCurrency } = useSettings();
@@ -79,9 +80,9 @@ export default function PrintableInvoice({ invoice }: { invoice: Invoice }) {
                             <TableRow key={item.id}>
                                 <TableCell className="font-medium">{item.name}</TableCell>
                                 <TableCell className="text-center">{item.quantity}</TableCell>
-                                <TableCell className="text-right">{formatCurrency(item.price)}</TableCell>
-                                <TableCell className="text-right">{formatCurrency(item.discount * item.quantity)}</TableCell>
-                                <TableCell className="text-right font-medium">{formatCurrency(item.price * item.quantity - item.discount * item.quantity)}</TableCell>
+                                <TableCell className="text-right"><CurrencyDisplay value={item.price} /></TableCell>
+                                <TableCell className="text-right"><CurrencyDisplay value={item.discount * item.quantity} /></TableCell>
+                                <TableCell className="text-right font-medium"><CurrencyDisplay value={item.price * item.quantity - item.discount * item.quantity} /></TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -101,36 +102,36 @@ export default function PrintableInvoice({ invoice }: { invoice: Invoice }) {
                 <div className="text-right space-y-2">
                     <div className="flex justify-between">
                         <span className="text-gray-500">Subtotal:</span>
-                        <span className="font-medium text-gray-800">{formatCurrency(invoice.subtotal)}</span>
+                        <span className="font-medium text-gray-800"><CurrencyDisplay value={invoice.subtotal} /></span>
                     </div>
                      {invoice.totalDiscount > 0 && (
                         <div className="flex justify-between">
                         <span className="text-gray-500">Discount:</span>
-                        <span className="font-medium text-gray-800">-{formatCurrency(invoice.totalDiscount)}</span>
+                        <span className="font-medium text-gray-800">-<CurrencyDisplay value={invoice.totalDiscount} /></span>
                         </div>
                     )}
                     {invoice.tax > 0 && (
                         <div className="flex justify-between">
                         <span className="text-gray-500">Tax:</span>
-                        <span className="font-medium text-gray-800">{formatCurrency(invoice.tax)}</span>
+                        <span className="font-medium text-gray-800"><CurrencyDisplay value={invoice.tax} /></span>
                         </div>
                     )}
                     {invoice.packagingCharge > 0 && (
                         <div className="flex justify-between">
                         <span className="text-gray-500">Packaging:</span>
-                        <span className="font-medium text-gray-800">{formatCurrency(invoice.packagingCharge)}</span>
+                        <span className="font-medium text-gray-800"><CurrencyDisplay value={invoice.packagingCharge} /></span>
                         </div>
                     )}
                     {invoice.serviceCharge > 0 && (
                         <div className="flex justify-between">
                         <span className="text-gray-500">Service Fee:</span>
-                        <span className="font-medium text-gray-800">{formatCurrency(invoice.serviceCharge)}</span>
+                        <span className="font-medium text-gray-800"><CurrencyDisplay value={invoice.serviceCharge} /></span>
                         </div>
                     )}
                     <Separator className="my-2"/>
                      <div className="flex justify-between text-xl font-bold">
                         <span className="text-gray-800">Total:</span>
-                        <span className="text-gray-900">{formatCurrency(invoice.total)}</span>
+                        <span className="text-gray-900"><CurrencyDisplay value={invoice.total} /></span>
                     </div>
                 </div>
             </section>
