@@ -236,6 +236,13 @@ export default function ProductManagement() {
     });
   };
 
+  const handleDialogChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setEditingProduct(undefined);
+    }
+  };
+
   const renderTableBody = () => {
     if (isLoading) {
       return [...Array(5)].map((_, i) => (
@@ -325,7 +332,7 @@ export default function ProductManagement() {
   }
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
       <Card>
         <CardHeader>
           <div className="flex justify-between items-start md:items-center flex-col md:flex-row gap-4">
@@ -409,10 +416,6 @@ export default function ProductManagement() {
         <ProductForm 
           product={editingProduct} 
           onSave={handleSaveProduct} 
-          onCancel={() => {
-            setIsDialogOpen(false);
-            setEditingProduct(undefined);
-          }} 
         />
       </DialogContent>
     </Dialog>

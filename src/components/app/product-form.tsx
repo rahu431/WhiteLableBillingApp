@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { DialogFooter } from '@/components/ui/dialog';
+import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import type { Product } from '@/lib/types';
 import { appIcons } from '@/lib/data';
 import { useEffect } from 'react';
@@ -31,10 +31,9 @@ type ProductFormData = z.infer<typeof productSchema>;
 interface ProductFormProps {
   product?: Product;
   onSave: (data: ProductFormData) => void;
-  onCancel: () => void;
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) => {
+const ProductForm: React.FC<ProductFormProps> = ({ product, onSave }) => {
   const { register, handleSubmit, control, formState: { errors }, reset } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -113,7 +112,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
       </div>
 
       <DialogFooter>
-        <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+        <DialogClose asChild>
+          <Button type="button" variant="ghost">Cancel</Button>
+        </DialogClose>
         <Button type="submit">Save Product</Button>
       </DialogFooter>
     </form>
