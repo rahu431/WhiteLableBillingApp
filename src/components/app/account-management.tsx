@@ -49,6 +49,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { addDays, format, startOfWeek } from "date-fns"
 import { cn } from '@/lib/utils';
 import { Separator } from '../ui/separator';
+import { useToast } from '@/hooks/use-toast';
 
 interface Invoice {
     id: string;
@@ -78,6 +79,7 @@ export default function AccountManagement() {
   const firestore = useFirestore();
   const { user } = useUser();
   const { formatCurrency, settings } = useSettings();
+  const { toast } = useToast();
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
@@ -142,14 +144,21 @@ export default function AccountManagement() {
     }
 
     if (!from) {
-        alert('Please select a "from" date.');
+        toast({
+            variant: "destructive",
+            title: 'Invalid Date Range',
+            description: "Please select a 'from' date for the export.",
+        });
         return;
     }
      if (!to) {
         to = from;
     }
-
-    alert(`Exporting invoices from ${format(from, 'PPP')} to ${format(to, 'PPP')}. This feature is coming soon!`);
+    
+    toast({
+        title: "Export feature is coming soon!",
+        description: `We're working on exporting invoices from ${format(from, 'PPP')} to ${format(to, 'PPP')}.`,
+    });
     
     if (rangeType === 'custom') {
         setIsExportDialogOpen(false);
@@ -162,7 +171,10 @@ export default function AccountManagement() {
   };
   
   const handleDownloadPdf = (invoiceId: string) => {
-      alert(`PDF download for invoice ${invoiceId} is coming soon!`);
+      toast({
+          title: "PDF Download is coming soon!",
+          description: `We're working on getting the PDF for invoice ${invoiceId} ready for you.`,
+      });
   };
 
   return (
