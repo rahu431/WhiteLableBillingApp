@@ -46,6 +46,9 @@ export default function PrintableInvoice({ invoice }: { invoice: Invoice }) {
                 <div className="text-right">
                     <p className="font-semibold text-gray-800">Invoice ID: {invoice.id}</p>
                     <p className="text-gray-500">Date Issued: {formatTimestamp(invoice.createdAt)}</p>
+                    {settings?.gstNumber && (
+                        <p className="text-gray-500 mt-1">GSTIN: {settings.gstNumber}</p>
+                    )}
                 </div>
             </header>
 

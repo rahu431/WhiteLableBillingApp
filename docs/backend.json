@@ -24,6 +24,7 @@
         "appName": { "type": "string", "description": "The custom name for the application." },
         "logoUrl": { "type": "string", "format": "uri", "description": "URL for a custom logo image." },
         "address": { "type": "string", "description": "The business address, to be displayed on invoices." },
+        "gstNumber": { "type": "string", "description": "The business's Goods and Services Tax Identification Number (GSTIN)." },
         "spreadsheetUrl": { "type": "string", "description": "The URL of the Google Sheet used for data storage.", "format": "uri" },
         "credentials": { "type": "string", "description": "The credentials used to access the Google Sheet (e.g., JSON key)." },
         "lastUpdated": { "type": "string", "description": "The timestamp of the last update to these settings.", "format": "date-time" },

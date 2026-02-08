@@ -40,6 +40,7 @@ export default function SettingsPage() {
     const [appName, setAppName] = useState('Care Billing');
     const [logoUrl, setLogoUrl] = useState('');
     const [address, setAddress] = useState('');
+    const [gstNumber, setGstNumber] = useState('');
 
     const settingsDocRef = useMemoFirebase(() => 
         firestore ? doc(firestore, 'settings', SETTINGS_DOC_ID) : null,
@@ -64,6 +65,7 @@ export default function SettingsPage() {
             setLogoUrl(settingsData.logoUrl || '');
             setUpiId(settingsData.upiId || '');
             setAddress(settingsData.address || '');
+            setGstNumber(settingsData.gstNumber || '');
         } else if (!isLoadingSettings) {
             // If not loading and there are no settings in the DB, use the browser's timezone.
             setTimezone(defaultTimezone);
@@ -141,6 +143,7 @@ export default function SettingsPage() {
             appName: appName,
             logoUrl: logoUrl,
             address: address,
+            gstNumber: gstNumber,
             lastUpdated: new Date().toISOString(),
         };
 
@@ -308,6 +311,15 @@ export default function SettingsPage() {
                         onChange={(e) => setAddress(e.target.value)}
                     />
                     <p className="text-sm text-muted-foreground">Your business address, to be displayed on invoices.</p>
+                  </div>
+                   <div className="space-y-2">
+                    <Label htmlFor="gst-number">GST Number</Label>
+                    <Input
+                      id="gst-number"
+                      value={gstNumber}
+                      onChange={(e) => setGstNumber(e.target.value)}
+                      placeholder="e.g. 29ABCDE1234F1Z5"
+                    />
                   </div>
                 </form>
               </CardContent>

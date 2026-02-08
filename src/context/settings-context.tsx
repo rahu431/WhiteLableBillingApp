@@ -18,6 +18,7 @@ interface Settings {
     logoUrl: string;
     upiId: string;
     address: string;
+    gstNumber: string;
 }
 
 interface SettingsContextType {
@@ -37,6 +38,7 @@ const defaultSettings: Settings = {
     logoUrl: '',
     upiId: '',
     address: '',
+    gstNumber: '',
 };
 
 export const SettingsContext = createContext<SettingsContextType>({
@@ -77,6 +79,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             logoUrl: settingsData?.logoUrl || defaultSettings.logoUrl,
             upiId: settingsData?.upiId || defaultSettings.upiId,
             address: settingsData?.address || defaultSettings.address,
+            gstNumber: settingsData?.gstNumber || defaultSettings.gstNumber,
         }
     }, [settingsData, defaultTimezone, user]);
 
