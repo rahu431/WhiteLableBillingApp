@@ -54,5 +54,18 @@ service cloud.firestore {
       allow update: if isSignedIn();
       allow delete: if false; // Prevent hard deletes
     }
+
+    /**
+     * @description
+     * Rules for the expenses collection. Users can create, read, update, and delete their
+     * own expense documents. Listing is permitted only when querying by the user's own ID.
+     * @path
+     * /expenses/{expenseId}
+     */
+    match /expenses/{expenseId} {
+        allow create: if isSignedIn() && isOwner(request.resource.data.userId);
+        allow read, update, delete: if isSignedIn() && isOwner(resource.data.userId);
+        allow list: if isSignedIn() && request.query.where.userId == request.auth.uid;
+    }
   }
 }

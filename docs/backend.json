@@ -71,6 +71,20 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the invoice was created." }
       },
       "required": ["id", "tokenId", "userId", "items", "total", "createdAt"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "type": "object",
+      "description": "Represents a single business expense.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the expense." },
+        "userId": { "type": "string", "description": "The ID of the user who created the expense." },
+        "name": { "type": "string", "description": "A brief description of the expense." },
+        "amount": { "type": "number", "description": "The monetary value of the expense." },
+        "category": { "type": "string", "description": "The category of the expense (e.g., Supplies, Rent)." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the expense was recorded." }
+      },
+      "required": ["id", "userId", "name", "amount", "category", "createdAt"]
     }
   },
   "auth": {
@@ -122,8 +136,22 @@
             }
           ]
         }
+      },
+      {
+        "path": "/expenses/{expenseId}",
+        "definition": {
+            "entityName": "Expense",
+            "schema": { "$ref": "#/backend/entities/Expense" },
+            "description": "Stores individual expense documents for each user.",
+            "params": [
+                {
+                    "name": "expenseId",
+                    "description": "Unique identifier for the expense document."
+                }
+            ]
+        }
       }
     ],
-    "reasoning": "This project follows the best practice of using separate, top-level collections for each data model. This ensures that the data for products, invoices, and settings are managed independently for better security and scalability.\n\n1.  **/products/{productId}**: Stores the product catalog. In this prototype, any authenticated user can manage products. For production, this access should be restricted.\n\n2.  **/invoices/{invoiceId}**: Stores individual invoice documents. Security rules ensure users can only access their own invoices.\n\n3.  **/settings/{settingId}**: Stores global application settings in a single document. Access should be restricted to admin users in production."
+    "reasoning": "This project follows the best practice of using separate, top-level collections for each data model. This ensures that the data for products, invoices, settings, and expenses are managed independently for better security and scalability.\n\n1.  **/products/{productId}**: Stores the product catalog. In this prototype, any authenticated user can manage products. For production, this access should be restricted.\n\n2.  **/invoices/{invoiceId}**: Stores individual invoice documents. Security rules ensure users can only access their own invoices.\n\n3.  **/settings/{settingId}**: Stores global application settings in a single document. Access should be restricted to admin users in production.\n\n4.  **/expenses/{expenseId}**: Stores individual expense documents. Security rules ensure users can only access their own expenses."
   }
 }
