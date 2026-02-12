@@ -9,7 +9,7 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000
+const TOAST_REMOVE_DELAY = 1000000; // This was the root cause of the UI blocking bug.
 
 type ToasterToast = ToastProps & {
   id: string

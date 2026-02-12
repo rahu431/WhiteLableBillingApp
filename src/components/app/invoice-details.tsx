@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useInvoice } from '@/hooks/use-invoice';
 import { useSettings } from '@/context/settings-context';
@@ -64,7 +64,7 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
     setQrCodeError(false);
   }, [qrCodeUrl]);
 
-  const getInvoiceAsText = () => {
+  const getInvoiceAsText = useCallback(() => {
     const appName = settings?.appName || 'Your App';
     const header = `*Invoice from ${appName}*\n\n`;
 
@@ -85,9 +85,9 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
     summaryText += `\n--------------------\n*Total: ${formatCurrency(total)}*`;
 
     return `${header}${itemsText}\n${summaryText}`;
-  }
+  }, [items, settings, subtotal, tax, packagingCharge, serviceCharge, totalDiscount, total, formatCurrency]);
 
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = useCallback(async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
       toast({
@@ -103,10 +103,10 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
         variant: "destructive",
       });
     }
-  };
+  }, [onShare, toast]);
 
 
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     if (items.length === 0) {
       toast({
         title: "Cannot Share Empty Invoice",
@@ -136,9 +136,9 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
     } else {
       await copyToClipboard(invoiceText);
     }
-  };
+  }, [items, getInvoiceAsText, onShare, copyToClipboard, toast]);
   
-  const handleGenerateClick = () => {
+  const handleGenerateClick = useCallback(() => {
     if (items.length === 0) {
       toast({
         title: "Cannot Generate Empty Invoice",
@@ -148,9 +148,9 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
       return;
     }
     setIsGenerateDialogOpen(true);
-  };
+  }, [items, toast]);
   
-  const handleConfirmGenerateInvoice = async () => {
+  const handleConfirmGenerateInvoice = useCallback(async () => {
     if (!firestore || !user) {
        toast({
         title: "Error",
@@ -238,7 +238,24 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
         description: e.message || "Could not save invoice.",
       });
     }
-  }
+  }, [
+    firestore, 
+    user, 
+    items, 
+    subtotal, 
+    tax, 
+    packagingCharge, 
+    serviceCharge, 
+    totalDiscount, 
+    total, 
+    customerName, 
+    customerEmail, 
+    customerPhone, 
+    notes, 
+    toast, 
+    clearInvoice, 
+    onInvoiceGenerated
+  ]);
 
 
   if (items.length === 0) {
@@ -252,116 +269,118 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <Card className="flex-grow overflow-hidden shadow-inner">
-        <CardContent className="p-4 h-full overflow-y-auto">
-          <div className="space-y-4">
-            {items.map((item) => (
-              <div key={item.id} className="flex flex-col gap-3 border-b pb-3">
-                <div className="flex items-center">
-                  <p className="font-semibold flex-grow">{item.name}</p>
-                   <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)} aria-label={`Remove ${item.name}`}>
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-2 gap-4 items-end">
-                   <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">Qty</label>
-                      <div className="flex items-center">
-                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity - 1)}> <Minus className="h-3 w-3" /> </Button>
-                        <Input 
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
-                            className="w-12 text-center h-8"
-                         />
-                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity + 1)}> <Plus className="h-3 w-3" /> </Button>
-                      </div>
-                   </div>
-                   <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                           <label className="text-xs text-muted-foreground">Price</label>
-                           <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => toggleDiscountInput(item.id)}
-                            >
-                              <Percent className="h-4 w-4" />
-                            </Button>
+    <>
+      <div className="flex flex-col h-full">
+        <Card className="flex-grow overflow-hidden shadow-inner">
+          <CardContent className="p-4 h-full overflow-y-auto">
+            <div className="space-y-4">
+              {items.map((item) => (
+                <div key={item.id} className="flex flex-col gap-3 border-b pb-3">
+                  <div className="flex items-center">
+                    <p className="font-semibold flex-grow">{item.name}</p>
+                    <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)} aria-label={`Remove ${item.name}`}>
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 items-end">
+                    <div className="space-y-1">
+                        <label className="text-xs text-muted-foreground">Qty</label>
+                        <div className="flex items-center">
+                          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity - 1)}> <Minus className="h-3 w-3" /> </Button>
+                          <Input 
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
+                              className="w-12 text-center h-8"
+                          />
+                          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity + 1)}> <Plus className="h-3 w-3" /> </Button>
                         </div>
+                    </div>
+                    <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <label className="text-xs text-muted-foreground">Price</label>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => toggleDiscountInput(item.id)}
+                              >
+                                <Percent className="h-4 w-4" />
+                              </Button>
+                          </div>
+                          <Input 
+                            type="number"
+                            value={item.price}
+                            onChange={(e) => updateItemPrice(item.id, parseFloat(e.target.value) || 0)}
+                            className="h-8"
+                          />
+                    </div>
+                  </div>
+                  {isDiscountInputVisible(item.id) && (
+                      <div className="space-y-1">
+                        <label className="text-xs text-muted-foreground">Discount Amount</label>
                         <Input 
                           type="number"
-                          value={item.price}
-                          onChange={(e) => updateItemPrice(item.id, parseFloat(e.target.value) || 0)}
+                          value={item.discount}
+                          onChange={(e) => updateItemDiscount(item.id, parseFloat(e.target.value) || 0)}
+                          placeholder="e.g. 5.00"
                           className="h-8"
                         />
-                   </div>
+                      </div>
+                    )}
                 </div>
-                 {isDiscountInputVisible(item.id) && (
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">Discount Amount</label>
-                      <Input 
-                        type="number"
-                        value={item.discount}
-                        onChange={(e) => updateItemDiscount(item.id, parseFloat(e.target.value) || 0)}
-                        placeholder="e.g. 5.00"
-                        className="h-8"
-                      />
-                    </div>
-                  )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="mt-auto pt-4">
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span>Subtotal</span>
-            <CurrencyDisplay value={subtotal} />
-          </div>
-           {totalDiscount > 0 && (
-            <div className="flex justify-between text-green-600">
-              <span>Discount</span>
-              <span>-<CurrencyDisplay value={totalDiscount} /></span>
+              ))}
             </div>
-          )}
-          {tax > 0 && (
+          </CardContent>
+        </Card>
+        
+        <div className="mt-auto pt-4">
+          <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span>Tax</span>
-              <CurrencyDisplay value={tax} />
+              <span>Subtotal</span>
+              <CurrencyDisplay value={subtotal} />
             </div>
-          )}
-          {packagingCharge > 0 && (
-             <div className="flex justify-between">
-              <span>Packaging</span>
-              <CurrencyDisplay value={packagingCharge} />
-            </div>
-          )}
-          {serviceCharge > 0 && (
-             <div className="flex justify-between">
-              <span>Service</span>
-              <CurrencyDisplay value={serviceCharge} />
-            </div>
-          )}
-        </div>
-        <Separator className="my-3" />
-        <div className="flex justify-between items-center text-xl font-bold mb-4">
-          <span>Total</span>
-          <CurrencyDisplay value={total} className="font-bold" />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" onClick={handleShare}>
-            <Share2 className="mr-2 h-4 w-4" /> Share
-          </Button>
-          <Button 
-            className="bg-accent text-accent-foreground hover:bg-accent/90 text-base font-bold"
-            onClick={handleGenerateClick}
-          >
-            Generate Invoice
-          </Button>
+            {totalDiscount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Discount</span>
+                <span>-<CurrencyDisplay value={totalDiscount} /></span>
+              </div>
+            )}
+            {tax > 0 && (
+              <div className="flex justify-between">
+                <span>Tax</span>
+                <CurrencyDisplay value={tax} />
+              </div>
+            )}
+            {packagingCharge > 0 && (
+              <div className="flex justify-between">
+                <span>Packaging</span>
+                <CurrencyDisplay value={packagingCharge} />
+              </div>
+            )}
+            {serviceCharge > 0 && (
+              <div className="flex justify-between">
+                <span>Service</span>
+                <CurrencyDisplay value={serviceCharge} />
+              </div>
+            )}
+          </div>
+          <Separator className="my-3" />
+          <div className="flex justify-between items-center text-xl font-bold mb-4">
+            <span>Total</span>
+            <CurrencyDisplay value={total} className="font-bold" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Button variant="outline" onClick={handleShare}>
+              <Share2 className="mr-2 h-4 w-4" /> Share
+            </Button>
+            <Button 
+              className="bg-accent text-accent-foreground hover:bg-accent/90 text-base font-bold"
+              onClick={handleGenerateClick}
+            >
+              Generate Invoice
+            </Button>
+          </div>
         </div>
       </div>
       
@@ -462,6 +481,6 @@ export default function InvoiceDetails({ onShare, onInvoiceGenerated }: InvoiceD
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

@@ -1,9 +1,10 @@
 'use client';
+import React, { memo } from 'react';
 import { useSettings } from "@/context/settings-context";
 import { IndianRupee } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function CurrencyDisplay({ value, className }: { value: number, className?: string }) {
+const CurrencyDisplay: React.FC<{ value: number, className?: string }> = memo(({ value, className }) => {
   const { settings, formatCurrency } = useSettings();
 
   if (settings?.currency === 'INR') {
@@ -23,4 +24,8 @@ export default function CurrencyDisplay({ value, className }: { value: number, c
   }
 
   return <span className={className}>{formatCurrency(value)}</span>;
-}
+});
+
+CurrencyDisplay.displayName = 'CurrencyDisplay';
+
+export default CurrencyDisplay;

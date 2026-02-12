@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -55,7 +55,6 @@ export default function ExpenseManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
 
   const {
     handleSubmit,
@@ -66,13 +65,6 @@ export default function ExpenseManagement() {
   } = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
   });
-
-  // Decouple dialog opening from menu interaction
-  useEffect(() => {
-    if (expenseToDelete) {
-      setIsDeleteAlertOpen(true);
-    }
-  }, [expenseToDelete]);
 
   const expensesQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -86,7 +78,7 @@ export default function ExpenseManagement() {
     return [...expenses].sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
   }, [expenses]);
   
-  const formatTimestamp = (timestamp: Timestamp | null | undefined) => {
+  const formatTimestamp = useCallback((timestamp: Timestamp | null | undefined) => {
     if (!timestamp) return 'N/A';
     return timestamp.toDate().toLocaleDateString('en-US', {
       year: 'numeric',
@@ -94,9 +86,9 @@ export default function ExpenseManagement() {
       day: 'numeric',
       timeZone: settings?.timezone || 'UTC',
     });
-  };
+  }, [settings?.timezone]);
 
-  const handleOpenDialog = (expense?: Expense) => {
+  const handleOpenDialog = useCallback((expense?: Expense) => {
     if (expense) {
       setEditingExpense(expense);
       reset({ name: expense.name, amount: expense.amount, category: expense.category, createdAt: expense.createdAt.toDate() });
@@ -105,14 +97,14 @@ export default function ExpenseManagement() {
       reset({ name: '', amount: 0, category: '', createdAt: new Date() });
     }
     setIsDialogOpen(true);
-  };
+  }, [reset]);
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = useCallback(() => {
     setIsDialogOpen(false);
     setEditingExpense(null);
-  };
+  }, []);
 
-  const onSubmit = (data: ExpenseFormData) => {
+  const onSubmit = useCallback((data: ExpenseFormData) => {
     if (!user || !firestore) return;
     
     const expenseData = {
@@ -135,23 +127,16 @@ export default function ExpenseManagement() {
       toast({ title: 'Expense Added', description: `${data.name} has been added.` });
     }
     handleCloseDialog();
-  };
+  }, [user, firestore, editingExpense, toast, handleCloseDialog]);
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = useCallback(() => {
     if (!firestore || !expenseToDelete) return;
     const expenseDocRef = doc(firestore, 'expenses', expenseToDelete.id);
     deleteDocumentNonBlocking(expenseDocRef);
     toast({ title: 'Expense Deleted', description: `${expenseToDelete.name} has been deleted.` });
     setExpenseToDelete(null);
-    setIsDeleteAlertOpen(false);
-  };
+  }, [firestore, expenseToDelete, toast]);
 
-  const handleDeleteAlertChange = (open: boolean) => {
-    setIsDeleteAlertOpen(open);
-    if (!open) {
-      setExpenseToDelete(null);
-    }
-  };
 
   return (
     <>
@@ -233,7 +218,7 @@ export default function ExpenseManagement() {
         </CardContent>
       </Card>
       
-      <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingExpense ? 'Edit Expense' : 'Add New Expense'}</DialogTitle>
@@ -314,7 +299,7 @@ export default function ExpenseManagement() {
         </DialogContent>
       </Dialog>
       
-      <AlertDialog open={isDeleteAlertOpen} onOpenChange={handleDeleteAlertChange}>
+      <AlertDialog open={!!expenseToDelete} onOpenChange={(open) => !open && setExpenseToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>

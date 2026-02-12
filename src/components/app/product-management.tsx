@@ -21,7 +21,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSettings } from '@/context/settings-context';
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useRef, useCallback } from 'react';
 import { Input } from '../ui/input';
 import {
   Dialog,
@@ -65,10 +65,8 @@ interface SalesInvoice {
 export default function ProductManagement() {
   const { products, addProduct, updateProduct, isLoading: isLoadingProducts } = useProducts();
   const [searchTerm, setSearchTerm] = useState('');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productToArchive, setProductToArchive] = useState<Product | null>(null);
-  const [isArchiveAlertOpen, setIsArchiveAlertOpen] = useState(false);
   const { formatCurrency } = useSettings();
   const [activeTab, setActiveTab] = useState('active');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,15 +82,6 @@ export default function ProductManagement() {
   const { data: invoices, isLoading: isLoadingInvoices } = useCollection<SalesInvoice>(invoicesQuery);
   
   const isLoading = isLoadingProducts || isLoadingInvoices;
-
-  // Decouple dialog opening from menu interaction
-  useEffect(() => {
-    if (editingProduct) setIsDialogOpen(true);
-  }, [editingProduct]);
-
-  useEffect(() => {
-    if (productToArchive) setIsArchiveAlertOpen(true);
-  }, [productToArchive]);
 
   const dailySales = useMemo(() => {
     if (!invoices) return new Map<string, number>();
@@ -123,33 +112,30 @@ export default function ProductManagement() {
     );
   }, [searchTerm, products, activeTab]);
 
-  const handleSaveProduct = (productData: Omit<ProductData, 'id' | 'status'>) => {
+  const handleSaveProduct = useCallback((productData: Omit<ProductData, 'id' | 'status'>) => {
     if (editingProduct) {
       updateProduct(editingProduct.id, productData);
     } else {
       addProduct(productData);
     }
-    setIsDialogOpen(false);
-    setEditingProduct(undefined);
-  };
+    setEditingProduct(null);
+  }, [editingProduct, addProduct, updateProduct]);
   
-  const handleConfirmArchive = () => {
+  const handleConfirmArchive = useCallback(() => {
     if (!productToArchive) return;
     updateProduct(productToArchive.id, { status: 'archived' });
     setProductToArchive(null);
-    setIsArchiveAlertOpen(false);
-  };
+  }, [productToArchive, updateProduct]);
 
-  const handleUnarchive = (productId: string) => {
+  const handleUnarchive = useCallback((productId: string) => {
     updateProduct(productId, { status: 'active' });
-  };
+  }, [updateProduct]);
 
-  const openNewProductDialog = () => {
-    setEditingProduct(undefined);
-    setIsDialogOpen(true);
-  }
+  const openNewProductDialog = useCallback(() => {
+    setEditingProduct(null);
+  }, []);
 
-  const handleExport = () => {
+  const handleExport = useCallback(() => {
     if (products.length === 0) {
       toast({
         variant: 'destructive',
@@ -185,13 +171,13 @@ export default function ProductManagement() {
     link.click();
     document.body.removeChild(link);
     toast({ title: 'Export successful', description: 'Your products have been exported to products.csv.' });
-  };
+  }, [products, toast]);
 
-  const handleImportClick = () => {
+  const handleImportClick = useCallback(() => {
     fileInputRef.current?.click();
-  };
+  }, []);
 
-  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -243,21 +229,7 @@ export default function ProductManagement() {
           toast({ variant: 'destructive', title: 'CSV Parsing Error', description: error.message });
       }
     });
-  };
-
-  const handleDialogChange = (open: boolean) => {
-    setIsDialogOpen(open);
-    if (!open) {
-      setEditingProduct(undefined);
-    }
-  };
-
-  const handleArchiveAlertChange = (open: boolean) => {
-      setIsArchiveAlertOpen(open);
-      if (!open) {
-          setProductToArchive(null);
-      }
-  }
+  }, [firestore, toast]);
 
   const renderTableBody = () => {
     if (isLoading) {
@@ -411,7 +383,7 @@ export default function ProductManagement() {
         </CardContent>
       </Card>
 
-      <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
+      <Dialog open={!!editingProduct || editingProduct === null} onOpenChange={(open) => !open && setEditingProduct(undefined)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
@@ -420,13 +392,14 @@ export default function ProductManagement() {
             </DialogDescription>
           </DialogHeader>
           <ProductForm 
-            product={editingProduct} 
+            product={editingProduct || undefined} 
             onSave={handleSaveProduct} 
+            onCancel={() => setEditingProduct(undefined)}
           />
         </DialogContent>
       </Dialog>
       
-      <AlertDialog open={isArchiveAlertOpen} onOpenChange={handleArchiveAlertChange}>
+      <AlertDialog open={!!productToArchive} onOpenChange={(open) => !open && setProductToArchive(null)}>
         <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure you want to archive this product?</AlertDialogTitle>

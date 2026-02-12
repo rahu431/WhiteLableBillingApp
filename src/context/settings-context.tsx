@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { createContext, useContext, ReactNode, useMemo, useCallback, useState, useEffect } from 'react';
+import React, { createContext, useContext, useMemo, useCallback, useState, useEffect } from 'react';
 import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 
@@ -88,10 +87,18 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // Use 'en-IN' locale for INR to ensure correct symbol and formatting.
         // Default to 'en-US' for other currencies.
         const locale = activeCurrency === 'INR' ? 'en-IN' : 'en-US';
-        return new Intl.NumberFormat(locale, {
-            style: "currency",
-            currency: activeCurrency,
-        }).format(amount);
+        try {
+            return new Intl.NumberFormat(locale, {
+                style: "currency",
+                currency: activeCurrency,
+            }).format(amount);
+        } catch (e) {
+            console.warn(`Could not format currency for ${activeCurrency}. Falling back to USD.`);
+            return new Intl.NumberFormat('en-US', {
+                style: "currency",
+                currency: 'USD',
+            }).format(amount);
+        }
     }, [settings?.currency]);
     
     const value = { settings, isLoading, formatCurrency };

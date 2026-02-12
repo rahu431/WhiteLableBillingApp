@@ -16,7 +16,7 @@ import {
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import type { Product } from '@/lib/types';
 import { appIcons } from '@/lib/data';
-import { useEffect } from 'react';
+import React, { useEffect, memo } from 'react';
 
 const productSchema = z.object({
   name: z.string().min(1, { message: "Product name is required" }),
@@ -31,36 +31,36 @@ type ProductFormData = z.infer<typeof productSchema>;
 interface ProductFormProps {
   product?: Product;
   onSave: (data: ProductFormData) => void;
+  onCancel: () => void;
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ product, onSave }) => {
+const ProductForm: React.FC<ProductFormProps> = memo(({ product, onSave, onCancel }) => {
   const { register, handleSubmit, control, formState: { errors }, reset } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
-    defaultValues: {
-      name: product?.name || '',
-      price: product?.price || 0,
-      icon: appIcons.find(p => p.icon === product?.icon)?.name || '',
-      imageUrl: product?.imageUrl || '',
-      category: product?.category || '',
-    }
   });
 
   useEffect(() => {
-    reset({
-        name: product?.name || '',
-        price: product?.price || 0,
-        icon: appIcons.find(p => p.icon === product?.icon)?.name || '',
-        imageUrl: product?.imageUrl || '',
-        category: product?.category || '',
-    });
+    if (product) {
+      reset({
+          name: product.name,
+          price: product.price,
+          icon: appIcons.find(p => p.icon === product.icon)?.name || '',
+          imageUrl: product.imageUrl,
+          category: product.category,
+      });
+    } else {
+      reset({
+        name: '',
+        price: 0,
+        icon: '',
+        imageUrl: 'https://picsum.photos/seed/1/400/300',
+        category: '',
+      });
+    }
   }, [product, reset]);
 
-  const onSubmit = (data: ProductFormData) => {
-    onSave(data);
-  };
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSave)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">Product Name</Label>
         <Input id="name" {...register('name')} />
@@ -112,13 +112,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave }) => {
       </div>
 
       <DialogFooter>
-        <DialogClose asChild>
-          <Button type="button" variant="ghost">Cancel</Button>
-        </DialogClose>
+        <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
         <Button type="submit">Save Product</Button>
       </DialogFooter>
     </form>
   );
-};
+});
+
+ProductForm.displayName = 'ProductForm';
 
 export default ProductForm;

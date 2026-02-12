@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import Image, { type ImageProps } from 'next/image';
 import { Coffee } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,7 +11,7 @@ interface ProductImageProps extends Omit<ImageProps, 'src' | 'onError'> {
   alt: string;
 }
 
-const ProductImage: React.FC<ProductImageProps> = ({ src, alt, className, ...props }) => {
+const ProductImage: React.FC<ProductImageProps> = memo(({ src, alt, className, ...props }) => {
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
@@ -40,6 +40,7 @@ const ProductImage: React.FC<ProductImageProps> = ({ src, alt, className, ...pro
       }}
     />
   );
-};
+});
+ProductImage.displayName = 'ProductImage';
 
 export default ProductImage;

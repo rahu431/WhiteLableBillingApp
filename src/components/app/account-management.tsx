@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import type { DateRange } from "react-day-picker"
 import {
   Card,
@@ -26,13 +26,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogClose,
 } from '@/components/ui/dialog';
 import {
   Popover,
@@ -63,10 +62,17 @@ export default function AccountManagement() {
   const { toast } = useToast();
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: addDays(new Date(), -29),
     to: new Date(),
   });
+
+  useEffect(() => {
+    if (selectedInvoice) {
+      setIsDetailDialogOpen(true);
+    }
+  }, [selectedInvoice]);
 
   const invoicesQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -87,7 +93,7 @@ export default function AccountManagement() {
     });
   }, [invoices]);
 
-  const formatTimestamp = (timestamp: Timestamp | null | undefined) => {
+  const formatTimestamp = useCallback((timestamp: Timestamp | null | undefined) => {
     if (!timestamp) return 'N/A';
     return timestamp.toDate().toLocaleDateString('en-US', {
       year: 'numeric',
@@ -97,9 +103,9 @@ export default function AccountManagement() {
       minute: '2-digit',
       timeZone: settings?.timezone || 'UTC',
     });
-  };
+  }, [settings?.timezone]);
 
-  const handleExport = (rangeType: 'last30days' | 'thisWeek' | 'today' | 'custom') => {
+  const handleExport = useCallback((rangeType: 'last30days' | 'thisWeek' | 'today' | 'custom') => {
     let from: Date | undefined;
     let to: Date | undefined;
     const now = new Date();
@@ -197,13 +203,13 @@ export default function AccountManagement() {
     if (rangeType === 'custom') {
         setIsExportDialogOpen(false);
     }
-  };
+  }, [dateRange, sortedInvoices, toast, formatTimestamp]);
   
-  const handlePrintInvoice = (invoiceId: string) => {
+  const handlePrintInvoice = useCallback((invoiceId: string) => {
       window.open(`/accounts/invoice/${invoiceId}`, '_blank');
-  };
+  }, []);
 
-  const getInvoiceAsText = (invoice: Invoice) => {
+  const getInvoiceAsText = useCallback((invoice: Invoice) => {
     const appName = settings?.appName || 'Your App';
     const header = `*Invoice from ${appName}*\n\n`;
     
@@ -226,9 +232,9 @@ export default function AccountManagement() {
     summaryText += `\n--------------------\n*Total: ${formatCurrency(invoice.total)}*`;
 
     return `${header}${customerInfo}${itemsText}\n${summaryText}`;
-  }
+  }, [settings, formatTimestamp, formatCurrency]);
 
-  const handleCopyInvoice = async (invoice: Invoice) => {
+  const handleCopyInvoice = useCallback(async (invoice: Invoice) => {
     const invoiceText = getInvoiceAsText(invoice);
     try {
       await navigator.clipboard.writeText(invoiceText);
@@ -244,7 +250,14 @@ export default function AccountManagement() {
         variant: "destructive",
       });
     }
-  };
+  }, [getInvoiceAsText, toast]);
+
+  const handleDetailDialogChange = useCallback((open: boolean) => {
+      setIsDetailDialogOpen(open);
+      if (!open) {
+          setSelectedInvoice(null);
+      }
+  }, []);
 
   return (
     <>
@@ -257,79 +270,21 @@ export default function AccountManagement() {
                 A list of all generated invoices.
               </CardDescription>
             </div>
-            <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Export to Excel
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleExport('last30days')}>Last 30 days</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExport('thisWeek')}>This Week</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExport('today')}>Today</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DialogTrigger asChild>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Custom Range...</DropdownMenuItem>
-                  </DialogTrigger>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DialogContent className="sm:max-w-[625px]">
-                  <DialogHeader>
-                      <DialogTitle>Export Custom Range</DialogTitle>
-                      <DialogDescription>
-                          Select the start and end date for the export.
-                      </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                      <div className="grid gap-2">
-                          <Popover>
-                              <PopoverTrigger asChild>
-                                  <Button
-                                      id="date"
-                                      variant={"outline"}
-                                      className={cn(
-                                          "w-full justify-start text-left font-normal",
-                                          !dateRange && "text-muted-foreground"
-                                      )}
-                                  >
-                                      <CalendarIcon className="mr-2 h-4 w-4" />
-                                      {dateRange?.from ? (
-                                          dateRange.to ? (
-                                              <>
-                                                  {format(dateRange.from, "LLL dd, y")} -{" "}
-                                                  {format(dateRange.to, "LLL dd, y")}
-                                              </>
-                                          ) : (
-                                              format(dateRange.from, "LLL dd, y")
-                                          )
-                                      ) : (
-                                          <span>Pick a date range</span>
-                                      )}
-                                  </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar
-                                      initialFocus
-                                      mode="range"
-                                      defaultMonth={dateRange?.from}
-                                      selected={dateRange}
-                                      onSelect={setDateRange}
-                                      numberOfMonths={2}
-                                  />
-                              </PopoverContent>
-                          </Popover>
-                      </div>
-                  </div>
-                  <DialogFooter>
-                      <DialogClose asChild>
-                        <Button variant="outline">Cancel</Button>
-                      </DialogClose>
-                      <Button onClick={() => handleExport('custom')}>Export</Button>
-                  </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <FileDown className="mr-2 h-4 w-4" />
+                  Export to Excel
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport('last30days')}>Last 30 days</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('thisWeek')}>This Week</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('today')}>Today</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => setIsExportDialogOpen(true)}>Custom Range...</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </CardHeader>
         <CardContent>
@@ -384,7 +339,7 @@ export default function AccountManagement() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => setSelectedInvoice(invoice)}>
+                          <DropdownMenuItem onSelect={() => setSelectedInvoice(invoice)}>
                             View Details
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handlePrintInvoice(invoice.id)}>
@@ -410,7 +365,64 @@ export default function AccountManagement() {
         </CardContent>
       </Card>
       
-      <Dialog open={!!selectedInvoice} onOpenChange={(open) => !open && setSelectedInvoice(null)}>
+      <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+        <DialogContent className="sm:max-w-[625px]">
+            <DialogHeader>
+                <DialogTitle>Export Custom Range</DialogTitle>
+                <DialogDescription>
+                    Select the start and end date for the export.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                id="date"
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !dateRange && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {dateRange?.from ? (
+                                    dateRange.to ? (
+                                        <>
+                                            {format(dateRange.from, "LLL dd, y")} -{" "}
+                                            {format(dateRange.to, "LLL dd, y")}
+                                        </>
+                                    ) : (
+                                        format(dateRange.from, "LLL dd, y")
+                                    )
+                                ) : (
+                                    <span>Pick a date range</span>
+                                )}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={dateRange?.from}
+                                selected={dateRange}
+                                onSelect={setDateRange}
+                                numberOfMonths={2}
+                            />
+                        </PopoverContent>
+                    </Popover>
+                </div>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button onClick={() => handleExport('custom')}>Export</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isDetailDialogOpen} onOpenChange={handleDetailDialogChange}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Invoice #{selectedInvoice?.tokenId}</DialogTitle>
