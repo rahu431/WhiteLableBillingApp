@@ -21,7 +21,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSettings } from '@/context/settings-context';
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { Input } from '../ui/input';
 import {
   Dialog,
@@ -85,6 +85,15 @@ export default function ProductManagement() {
   
   const isLoading = isLoadingProducts || isLoadingInvoices;
 
+  // Decouple dialog opening from menu interaction
+  useEffect(() => {
+    if (editingProduct) setIsDialogOpen(true);
+  }, [editingProduct]);
+
+  useEffect(() => {
+    if (productToArchive) setIsArchiveAlertOpen(true);
+  }, [productToArchive]);
+
   const dailySales = useMemo(() => {
     if (!invoices) return new Map<string, number>();
 
@@ -122,11 +131,6 @@ export default function ProductManagement() {
     }
     setIsDialogOpen(false);
     setEditingProduct(undefined);
-  };
-
-  const handleEdit = (product: Product) => {
-    setEditingProduct(product);
-    setIsDialogOpen(true);
   };
   
   const handleConfirmArchive = () => {
@@ -248,6 +252,13 @@ export default function ProductManagement() {
     }
   };
 
+  const handleArchiveAlertChange = (open: boolean) => {
+      setIsArchiveAlertOpen(open);
+      if (!open) {
+          setProductToArchive(null);
+      }
+  }
+
   const renderTableBody = () => {
     if (isLoading) {
       return [...Array(5)].map((_, i) => (
@@ -298,20 +309,16 @@ export default function ProductManagement() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => handleEdit(product)}>Edit</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setEditingProduct(product)}>Edit</DropdownMenuItem>
                 {product.status === 'active' ? (
                   <DropdownMenuItem 
                     className="text-destructive" 
-                    onSelect={(e) => {
-                      e.preventDefault();
-                      setProductToArchive(product);
-                      setIsArchiveAlertOpen(true);
-                    }}
+                    onSelect={() => setProductToArchive(product)}
                   >
                     Archive
                   </DropdownMenuItem>
                 ) : (
-                  <DropdownMenuItem onClick={() => handleUnarchive(product.id)}>Unarchive</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => handleUnarchive(product.id)}>Unarchive</DropdownMenuItem>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -419,7 +426,7 @@ export default function ProductManagement() {
         </DialogContent>
       </Dialog>
       
-      <AlertDialog open={isArchiveAlertOpen} onOpenChange={setIsArchiveAlertOpen}>
+      <AlertDialog open={isArchiveAlertOpen} onOpenChange={handleArchiveAlertChange}>
         <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure you want to archive this product?</AlertDialogTitle>

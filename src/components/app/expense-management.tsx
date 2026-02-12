@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -55,6 +55,7 @@ export default function ExpenseManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
 
   const {
     handleSubmit,
@@ -65,6 +66,13 @@ export default function ExpenseManagement() {
   } = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
   });
+
+  // Decouple dialog opening from menu interaction
+  useEffect(() => {
+    if (expenseToDelete) {
+      setIsDeleteAlertOpen(true);
+    }
+  }, [expenseToDelete]);
 
   const expensesQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -135,6 +143,14 @@ export default function ExpenseManagement() {
     deleteDocumentNonBlocking(expenseDocRef);
     toast({ title: 'Expense Deleted', description: `${expenseToDelete.name} has been deleted.` });
     setExpenseToDelete(null);
+    setIsDeleteAlertOpen(false);
+  };
+
+  const handleDeleteAlertChange = (open: boolean) => {
+    setIsDeleteAlertOpen(open);
+    if (!open) {
+      setExpenseToDelete(null);
+    }
   };
 
   return (
@@ -193,13 +209,10 @@ export default function ExpenseManagement() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handleOpenDialog(expense)}>Edit</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleOpenDialog(expense)}>Edit</DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-destructive" 
-                            onSelect={(e) => {
-                              e.preventDefault();
-                              setExpenseToDelete(expense);
-                            }}
+                            onSelect={() => setExpenseToDelete(expense)}
                           >
                             Delete
                           </DropdownMenuItem>
@@ -301,7 +314,7 @@ export default function ExpenseManagement() {
         </DialogContent>
       </Dialog>
       
-      <AlertDialog open={!!expenseToDelete} onOpenChange={(open) => !open && setExpenseToDelete(null)}>
+      <AlertDialog open={isDeleteAlertOpen} onOpenChange={handleDeleteAlertChange}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -310,7 +323,7 @@ export default function ExpenseManagement() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setExpenseToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
