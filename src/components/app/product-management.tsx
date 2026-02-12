@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Product, ProductData } from '@/lib/types';
@@ -65,7 +66,7 @@ interface SalesInvoice {
 export default function ProductManagement() {
   const { products, addProduct, updateProduct, isLoading: isLoadingProducts } = useProducts();
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null | undefined>(undefined);
   const [productToArchive, setProductToArchive] = useState<Product | null>(null);
   const { formatCurrency } = useSettings();
   const [activeTab, setActiveTab] = useState('active');
@@ -118,7 +119,7 @@ export default function ProductManagement() {
     } else {
       addProduct(productData);
     }
-    setEditingProduct(null);
+    setEditingProduct(undefined);
   }, [editingProduct, addProduct, updateProduct]);
   
   const handleConfirmArchive = useCallback(() => {
@@ -383,7 +384,7 @@ export default function ProductManagement() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!editingProduct || editingProduct === null} onOpenChange={(open) => !open && setEditingProduct(undefined)}>
+      <Dialog open={editingProduct !== undefined} onOpenChange={(open) => !open && setEditingProduct(undefined)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
