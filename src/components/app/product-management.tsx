@@ -132,10 +132,6 @@ export default function ProductManagement() {
     updateProduct(productId, { status: 'active' });
   }, [updateProduct]);
 
-  const openNewProductDialog = useCallback(() => {
-    setEditingProduct(null);
-  }, []);
-
   const handleExport = useCallback(() => {
     if (products.length === 0) {
       toast({
@@ -282,11 +278,11 @@ export default function ProductManagement() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setEditingProduct(product); }}>Edit</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setEditingProduct(product)}>Edit</DropdownMenuItem>
                 {product.status === 'active' ? (
                   <DropdownMenuItem 
                     className="text-destructive" 
-                    onSelect={(e) => { e.preventDefault(); setProductToArchive(product); }}
+                    onSelect={() => setProductToArchive(product)}
                   >
                     Archive
                   </DropdownMenuItem>
@@ -336,7 +332,7 @@ export default function ProductManagement() {
                     style={{ display: 'none' }}
                     accept=".csv"
                 />
-                <Button onClick={openNewProductDialog}>
+                <Button onClick={() => setEditingProduct(null)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add Product
                 </Button>

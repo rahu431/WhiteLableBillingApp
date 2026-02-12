@@ -89,7 +89,7 @@ export default function ExpenseManagement() {
     });
   }, [settings?.timezone]);
 
-  const handleOpenDialog = useCallback((expense?: Expense) => {
+  const handleOpenDialog = useCallback((expense?: Expense | null) => {
     if (expense) {
       setEditingExpense(expense);
       reset({ name: expense.name, amount: expense.amount, category: expense.category, createdAt: expense.createdAt.toDate() });
@@ -148,7 +148,7 @@ export default function ExpenseManagement() {
               <CardTitle>Expense Management</CardTitle>
               <CardDescription>Track and manage your business expenses.</CardDescription>
             </div>
-            <Button onClick={() => handleOpenDialog()}>
+            <Button onClick={() => handleOpenDialog(null)}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Expense
             </Button>
@@ -195,10 +195,10 @@ export default function ExpenseManagement() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleOpenDialog(expense); }}>Edit</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleOpenDialog(expense)}>Edit</DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-destructive" 
-                            onSelect={(e) => { e.preventDefault(); setExpenseToDelete(expense); }}
+                            onSelect={() => setExpenseToDelete(expense)}
                           >
                             Delete
                           </DropdownMenuItem>
@@ -243,7 +243,7 @@ export default function ExpenseManagement() {
                   name="category"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
