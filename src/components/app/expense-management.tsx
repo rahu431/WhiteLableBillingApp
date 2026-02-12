@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -194,10 +195,10 @@ export default function ExpenseManagement() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => handleOpenDialog(expense)}>Edit</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleOpenDialog(expense); }}>Edit</DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-destructive" 
-                            onSelect={() => setExpenseToDelete(expense)}
+                            onSelect={(e) => { e.preventDefault(); setExpenseToDelete(expense); }}
                           >
                             Delete
                           </DropdownMenuItem>
