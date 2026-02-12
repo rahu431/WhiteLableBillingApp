@@ -114,11 +114,21 @@ export default function ProductManagement() {
   }, [searchTerm, products, activeTab]);
 
   const handleSaveProduct = useCallback((productData: Omit<ProductData, 'id' | 'status'>) => {
+    debugger; // Pauses here when save is clicked
+    console.log('[DEBUG] handleSaveProduct called with:', { productData, editingProduct });
+
     if (editingProduct) {
+      debugger; // Pauses here if we are editing
+      console.log(`[DEBUG] Updating product: ${editingProduct.id}`);
       updateProduct(editingProduct.id, productData);
     } else {
+      debugger; // Pauses here if we are adding a new product
+      console.log('[DEBUG] Adding new product.');
       addProduct(productData);
     }
+    
+    debugger; // Pauses here right before closing the dialog
+    console.log('[DEBUG] Closing dialog now.');
     setEditingProduct(undefined);
   }, [editingProduct, addProduct, updateProduct]);
   
