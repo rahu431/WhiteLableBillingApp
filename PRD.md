@@ -99,7 +99,7 @@ Your primary goal is to create a clean, maintainable, and highly responsive appl
     *   "Export to Excel" dropdown with options for different date ranges.
     *   Actions menu for each invoice: "View Details", "Print Invoice", "Copy Invoice".
 *   **AI Development Strategy:**
-    *   **Prompt:** "Create an `AccountManagement` component. Fetch and display all invoices for the current user from Firestore in a `Table`. Add an 'Export to Excel' `DropdownMenu` that uses `papaparse` to generate a CSV. For each invoice row, add a `DropdownMenu` with actions to 'Print' (linking to the printable invoice page) and 'Copy' (copying a text summary to the clipboard)."
+    *   **Prompt:** "Create an `AccountManagement` component. Fetch and display all invoices for the current user from Firestore in a `Table`. Add an 'Export to Excel' `DropdownMenu` that uses `papaparse` to generate a CSV. For each invoice row, add a `DropdownMenu` with actions to 'Print' (linking to the printable invoice page in a small thermal printer, so adjust the invoice size accourding to that) and 'Copy' (copying a text summary to the clipboard)."
 
 ### 5.5. Printable Invoice Page (`/accounts/invoice/[invoiceId]`)
 
